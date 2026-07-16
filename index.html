@@ -127,7 +127,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 #username-input { width: 140px; }
 
 /* アクション欄はカードで囲っていないオレンジ地の上にあるため、説明文は白にする */
-#confirm-note { color: #ffffff; }
+/* confirm-noteは現在ベットカード内(クリーム背景)にあるため、.note-textの標準色をそのまま使う */
 
 /* ---------- 吹き出し(担当アイドルのひとこと) ---------- */
 .speech-bubble {
@@ -228,7 +228,14 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 .bet-row { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .bet-row span { font-size: 13px; color: var(--muted); }
-.bet-row input { width: 56px; text-align: right; }
+.bet-row input {
+  width: 80px; text-align: right;
+  -moz-appearance: textfield;
+}
+.bet-row input::-webkit-outer-spin-button,
+.bet-row input::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
 
 /* ---------- 正解セトリ ---------- */
 .setlist-cols { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 12px; }
@@ -1927,10 +1934,3 @@ document.getElementById("delete-event-btn").addEventListener("click", async () =
     return;
   }
   selectedEvent = null;
-  document.getElementById("event-content").classList.add("hidden");
-  document.getElementById("event-select").value = "";
-  await loadEvents();
-});
-</script>
-</body>
-</html>
