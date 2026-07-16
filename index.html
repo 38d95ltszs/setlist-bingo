@@ -542,9 +542,11 @@ td, th { padding: 6px; }
           <div class="flex-gap" style="margin-top:10px;">
             <button id="csv-parse-btn" class="btn-primary btn-sm">内容を確認する</button>
             <button id="csv-submit-btn" class="btn-gold btn-sm hidden">この内容で登録する</button>
+            <button id="settle-all-btn" class="btn-ghost btn-sm">確定済み全員を再採点する</button>
           </div>
           <div id="csv-error" class="error-text hidden"></div>
           <div id="csv-status" class="ok-text hidden"></div>
+          <div id="settle-status" class="ok-text hidden"></div>
           <div id="admin-preview"></div>
         </div>
 
@@ -735,7 +737,7 @@ const HELP_TEXTS = {
   },
   admin: {
     title: "大会の管理について",
-    body: "この大会の作成者だけが使える機能です。正解セトリ(実際に演奏された曲と歌唱者)をCSVで登録・上書きできるほか、締切時間の変更、候補曲リスト・担当アイドル一覧の再登録、大会そのものの削除ができます。歌唱者は声優(CV)名で記録し、参加者の担当アイドル選択もCV名で照合されます。削除は元に戻せません。",
+    body: "この大会の作成者だけが使える機能です。正解セトリ(実際に演奏された曲と歌唱者)をCSVで登録・上書きできるほか、締切時間の変更、候補曲リスト・担当アイドル一覧の再登録、大会そのものの削除ができます。正解セトリを登録すると、確定済みの参加者全員がその場で自動的に採点されます(各参加者がログインし直す必要はありません)。CSVを修正した場合などは「確定済み全員を再採点する」で再実行できます。歌唱者は声優(CV)名で記録し、参加者の担当アイドル選択もCV名で照合されます。削除は元に戻せません。",
   },
 };
 
@@ -1625,11 +1627,8 @@ function updateConfirmState() {
   }
 }
 
-function computeScore() {
-  const songs = eventSetlist.map((e) => e.song);
-  const members = songMembersMap();
-
-  const hits = board.map((song, i) => {
+function computeScoreCore(boardArg, betsArg, idolCvArg, songs, members) {
+  const hits = boardArg.map((song, i) => {
     if (i === 12) return true;
     if (i === 0) return song === songs[0];
     if (i === 24) return song === songs[songs.length - 1];
@@ -1638,11 +1637,11 @@ function computeScore() {
 
   const lineResults = LINES.map((line) => {
     const hitCount = line.idx.filter((i) => hits[i]).length;
-    const bet = Number(bets[line.id]) || 0;
+    const bet = Number(betsArg[line.id]) || 0;
     let payout, status, tantouCount = 0;
     if (hitCount === 5) {
       status = "BINGO";
-      tantouCount = line.idx.filter((i) => i !== 12 && hits[i] && members[board[i]]?.includes(selectedIdolCv)).length;
+      tantouCount = line.idx.filter((i) => i !== 12 && hits[i] && members[boardArg[i]]?.includes(idolCvArg)).length;
       payout = bet * line.mult * Math.pow(2, tantouCount);
     } else if (hitCount === 0) {
       status = "不成立"; payout = 0;
@@ -1661,6 +1660,51 @@ function computeScore() {
   const bingoCount = lineResults.filter((l) => l.status === "BINGO").length;
 
   return { lineResults, subtotal, openingHit, encoreHit, multiplier, finalTotal, bingoCount };
+}
+
+function computeScore() {
+  const songs = eventSetlist.map((e) => e.song);
+  const members = songMembersMap();
+  return computeScoreCore(board, bets, selectedIdolCv, songs, members);
+}
+
+// 大会の管理者が正解セトリを登録した際、確定済みの全参加者を一括採点する
+async function settleAllConfirmedUsers() {
+  const { data: saves, error } = await supabase
+    .from("game_saves")
+    .select("*")
+    .eq("event_id", selectedEvent.id)
+    .eq("confirmed", true);
+  if (error) { console.error("settleAllConfirmedUsers: game_saves取得失敗", error); return { count: 0, total: 0, error }; }
+
+  const songs = eventSetlist.map((e) => e.song);
+  const members = songMembersMap();
+  let settledCount = 0;
+
+  for (const save of saves || []) {
+    const scored = computeScoreCore(save.board || [], save.bets || {}, save.selected_idol_cv || "", songs, members);
+
+    const { error: resErr } = await supabase.from("results").upsert({
+      event_id: selectedEvent.id,
+      user_id: save.user_id,
+      username: save.username || "名無し",
+      selected_idol: save.selected_idol,
+      comment: save.comment,
+      total_points: scored.finalTotal,
+      bingo_count: scored.bingoCount,
+    });
+    if (resErr) { console.error("settleAllConfirmedUsers: results書き込み失敗", save.user_id, resErr); continue; }
+
+    const { error: gsErr } = await supabase
+      .from("game_saves")
+      .update({ points: scored.finalTotal })
+      .eq("event_id", selectedEvent.id)
+      .eq("user_id", save.user_id);
+    if (gsErr) console.error("settleAllConfirmedUsers: game_saves更新失敗", save.user_id, gsErr);
+
+    settledCount++;
+  }
+  return { count: settledCount, total: (saves || []).length };
 }
 
 // 確定済み(自分でボタンを押した、または締切を迎えた)かつ正解セトリが登録され次第、自動で採点してランキングに反映する
@@ -2035,6 +2079,7 @@ function renderAdminTab() {
   document.getElementById("admin-preview").innerHTML = "";
   document.getElementById("csv-error").classList.add("hidden");
   document.getElementById("csv-status").classList.add("hidden");
+  document.getElementById("settle-status").classList.add("hidden");
 
   document.getElementById("songs-count").textContent = eventSongs.length;
   document.getElementById("idols-count").textContent = eventIdols.length;
@@ -2106,11 +2151,37 @@ document.getElementById("csv-submit-btn").addEventListener("click", async () => 
   const { error: insError } = await supabase.from("event_setlists").insert(rowsToInsert);
   if (insError) { errEl.textContent = "登録に失敗しました: " + insError.message; errEl.classList.remove("hidden"); return; }
 
-  statusEl.textContent = "✓ 正解セトリを登録しました";
+  statusEl.textContent = "✓ 正解セトリを登録しました。参加者を一括採点しています…";
   statusEl.classList.remove("hidden");
   await loadEventSetlist();
   renderSetlistDisplay();
   updateConfirmState();
+
+  const settleResult = await settleAllConfirmedUsers();
+  if (settleResult.error) {
+    statusEl.textContent = `✓ 正解セトリは登録しましたが、一括採点でエラーが出ました: ${settleResult.error.message}`;
+  } else {
+    statusEl.textContent = `✓ 正解セトリを登録し、確定済み参加者 ${settleResult.count}/${settleResult.total}人を採点しました`;
+  }
+
+  tryAutoScore();
+});
+
+document.getElementById("settle-all-btn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("settle-status");
+  if (!eventSetlist || eventSetlist.length === 0) {
+    statusEl.textContent = "正解セトリが未登録のため採点できません。";
+    statusEl.classList.remove("hidden");
+    return;
+  }
+  statusEl.textContent = "採点中…";
+  statusEl.classList.remove("hidden");
+  const result = await settleAllConfirmedUsers();
+  if (result.error) {
+    statusEl.textContent = `エラーが出ました: ${result.error.message}`;
+  } else {
+    statusEl.textContent = `✓ 確定済み参加者 ${result.count}/${result.total}人を再採点しました`;
+  }
   tryAutoScore();
 });
 
