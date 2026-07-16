@@ -105,7 +105,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .stat-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .stat-label { font-size: 11px; color: var(--muted); }
 .stat-value { font-size: 22px; font-weight: 700; }
-.divider { width: 1px; height: 32px; background: var(--line); }
+.divider { width: 1px; height: 32px; background: var(--line); flex-shrink: 0; }
 #comment-input { width: 180px; }
 
 /* ---------- 凡例 ---------- */
@@ -226,10 +226,11 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   #bet-grid { grid-template-columns: repeat(5, 1fr); }
   .bet-row { order: var(--desktop-order, 0); }
 }
-.bet-row { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.bet-row span { font-size: 13px; color: var(--muted); }
+.bet-row { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.bet-row span { font-size: 13px; color: var(--muted); flex-shrink: 0; }
 .bet-row input {
-  width: 80px; text-align: right;
+  flex: 1 1 50px; min-width: 50px; max-width: 90px; width: auto; text-align: right;
+  padding: 6px 6px;
   -moz-appearance: textfield;
 }
 .bet-row input::-webkit-outer-spin-button,
@@ -243,6 +244,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .setlist-cols ol { margin: 0; padding-left: 18px; color: var(--muted); }
 
 /* ---------- テーブル共通 ---------- */
+.table-scroll { overflow-x: auto; margin-bottom: 16px; }
+.table-scroll table { margin-bottom: 0; min-width: 480px; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
 thead tr { color: var(--muted); text-align: left; }
 tbody tr { border-top: 1px solid var(--line); }
@@ -280,7 +283,7 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
       <input id="auth-id" type="text" autocomplete="username" placeholder="例: gakuen">
 
       <label for="auth-password">パスワード</label>
-      <input id="auth-password" type="password" autocomplete="current-password" placeholder="8文字以上">
+      <input id="auth-password" type="text" autocomplete="current-password" placeholder="8文字以上">
 
       <div id="auth-error" class="error-text hidden"></div>
 
@@ -471,7 +474,8 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
         </div>
 
         <!-- SNS共有 -->
-        <div class="card">
+        <!-- SNS共有: 要件が決まりきっていないため一時非表示(class="hidden") -->
+        <div class="card hidden">
           <div class="flex-gap" style="justify-content:space-between;">
             <h2>SNS共有用テキスト</h2>
             <div class="flex-gap" style="gap:8px;">
@@ -880,12 +884,46 @@ function translateAuthError(msg) {
 
 document.getElementById("logout-btn").addEventListener("click", async () => {
   await supabase.auth.signOut();
+  resetAppStateOnLogout();
   currentUser = null;
   appScreen.classList.add("hidden");
   authScreen.classList.remove("hidden");
   authIdInput.value = "";
   authPasswordInput.value = "";
 });
+
+function resetAppStateOnLogout() {
+  // 別のアカウントでログインした時に前のユーザーのデータが一瞬でも見えないよう、
+  // メモリ上の状態を全てクリアする(このアプリはlocalStorageを使っていないので、
+  // ここでJS変数をリセットするのが「キャッシュ削除」に相当する)
+  events = [];
+  selectedEvent = null;
+  eventSetlist = null;
+  eventSongs = [];
+  eventIdols = [];
+  isAdminOfEvent = false;
+  isLocked = false;
+  confirmed = false;
+
+  board = Array(25).fill(null);
+  bets = Object.fromEntries(LINES.map((l) => [l.id, DEFAULT_BET]));
+  points = INITIAL_POINTS;
+  selectedIdol = "";
+  comment = "";
+  username = "";
+  result = null;
+  parsedCsvRows = null;
+  parsedFrontCount = null;
+
+  document.getElementById("event-select").innerHTML = '<option value="">大会を選択…</option>';
+  document.getElementById("event-content").classList.add("hidden");
+  document.getElementById("create-event-form").classList.add("hidden");
+  document.getElementById("show-create-event-btn").classList.add("hidden");
+  document.getElementById("result-box").innerHTML = "";
+  document.getElementById("result-box").classList.add("hidden");
+  document.getElementById("share-box").classList.add("hidden");
+  document.getElementById("share-text-area").value = "";
+}
 
 async function onLoggedIn(user, id) {
   currentUser = { id: user.id, label: id };
@@ -1194,6 +1232,7 @@ function renderUsernameInput() {
 
 function randomFillBoard() {
   if (isFinalized()) return;
+  if (!confirm("本当におまかせしますか？(空いているマスがランダムな曲で埋まります)")) return;
   const usedSongs = new Set(board.filter(Boolean));
   const availablePool = shuffle(eventSongs.filter((s) => !usedSongs.has(s)));
   let poolIdx = 0;
@@ -1376,6 +1415,7 @@ function renderBetGrid() {
 
 function randomDistributeBets() {
   if (isFinalized()) return;
+  if (!confirm("本当におまかせしますか？(現在のベット配分が上書きされます)")) return;
   const step = 100;
   const totalUnits = Math.floor(points / step);
   const leftover = points - totalUnits * step;
@@ -1633,10 +1673,10 @@ function renderResult() {
     <div style="font-size:12px; color:var(--muted); margin-bottom:14px;">
       担当アイドル: <span style="color:var(--gold);">${selectedIdol}</span>(BINGO成立ラインの担当曲マス1つにつきスコア×2)
     </div>
-    <table>
+    <div class="table-scroll"><table>
       <thead><tr><th>ライン</th><th>ベット</th><th>的中数</th><th>結果</th><th>担当曲</th><th>払戻</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>
+    </table></div>
     <div class="flex-gap" style="font-size:13px; margin-bottom:14px;">
       <div>ライン精算小計: <span class="mono-font" style="color:var(--text);">${result.subtotal.toLocaleString()}ジュエル</span></div>
       <div>OPENING的中: <span style="color:${result.openingHit ? "var(--gold)" : "var(--muted)"};">${result.openingHit ? "○ (×2)" : "×"}</span></div>
@@ -1720,10 +1760,10 @@ async function renderRankingTab() {
     </tr>`;
   }).join("");
   wrap.innerHTML = `
-    <table>
+    <div class="table-scroll"><table>
       <thead><tr><th>順位</th><th>ユーザー名</th><th>担当アイドル</th><th>ジュエル</th><th>ビンゴ本数</th><th>ひとこと</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table></div>`;
 }
 document.getElementById("ranking-refresh-btn").addEventListener("click", renderRankingTab);
 
@@ -1815,7 +1855,7 @@ document.getElementById("csv-parse-btn").addEventListener("click", () => {
       : "";
     return `${divider}<tr><td class="mono-font">${r.position}</td><td>${escapeHtml(r.song)}</td><td>${escapeHtml(r.members.join("・") || "-")}</td></tr>`;
   }).join("");
-  preview.innerHTML = `<table><thead><tr><th>#</th><th>曲名</th><th>担当アイドル</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+  preview.innerHTML = `<div class="table-scroll"><table><thead><tr><th>#</th><th>曲名</th><th>担当アイドル</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
     <p class="note-text" style="margin-top:8px;">${frontCount !== null ? `前半${frontCount}曲・後半${rows.length - frontCount}曲として登録されます。` : "FREE行が見つからなかったので、前半/後半は曲数で自動的に半分に割ります。"}</p>`;
   document.getElementById("csv-submit-btn").classList.remove("hidden");
 });
