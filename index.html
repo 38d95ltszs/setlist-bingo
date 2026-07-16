@@ -364,6 +364,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           <div id="idol-message-bubble" class="speech-bubble hidden">
             <div id="idol-message"></div>
           </div>
+          <div class="flex-gap" style="margin-top:16px;">
+            <button id="save-btn-user" class="btn-gold btn-sm">保存する</button>
+            <span id="save-status-user" class="ok-text hidden"></span>
+          </div>
         </div>
 
         <!-- 正解登録後に表示 -->
@@ -388,6 +392,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           </div>
           <div id="board"></div>
           <p id="board-glow-note" class="note-text hidden">✨ 光っているラインはBINGO成立!</p>
+          <div class="flex-gap" style="margin-top:16px;">
+            <button id="save-btn-board" class="btn-gold btn-sm">保存する</button>
+            <span id="save-status-board" class="ok-text hidden"></span>
+          </div>
         </div>
 
         <!-- ベット -->
@@ -396,7 +404,7 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           <div class="stat-row" style="margin-bottom:16px;">
             <div>
               <div class="stat-label">現在のジュエル</div>
-              <div id="points-value" class="stat-value mono-font">10000</div>
+              <div id="points-value" class="stat-value mono-font">12000</div>
             </div>
             <div class="divider"></div>
             <div>
@@ -411,18 +419,21 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           </div>
           <div id="bet-grid"></div>
           <p id="bet-glow-note" class="note-text hidden" style="margin-top:10px;">✨ 光っている枠はBINGO成立ライン!</p>
-        </div>
+          <div class="flex-gap" style="margin-top:16px;">
+            <button id="save-btn-bet" class="btn-gold btn-sm">保存する</button>
+            <span id="save-status-bet" class="ok-text hidden"></span>
+          </div>
 
-        <!-- アクション -->
-        <div id="confirm-error" class="error-text hidden"></div>
-        <div class="flex-gap" style="margin-bottom:14px;">
-          <button id="confirm-btn" class="btn-primary">確定する</button>
-          <button id="save-btn" class="btn-gold">保存する</button>
-          <button id="rescore-btn" class="btn-ghost btn-sm">再採点する</button>
+          <div style="margin-top:28px; padding-top:20px; border-top:1px solid var(--line);">
+            <div id="confirm-error" class="error-text hidden"></div>
+            <div class="flex-gap" style="margin-bottom:14px;">
+              <button id="confirm-btn" class="btn-primary">確定する</button>
+              <button id="rescore-btn" class="btn-ghost btn-sm">再採点する</button>
+            </div>
+            <div id="confirm-note" class="note-text" style="margin-bottom:8px;"></div>
+            <div id="confirm-message" style="font-size:13px; color:var(--gold); font-style:italic;"></div>
+          </div>
         </div>
-        <div id="confirm-note" class="note-text" style="margin-bottom:8px;"></div>
-        <div id="confirm-message" style="font-size:13px; color:var(--gold); font-style:italic; margin-bottom:20px;"></div>
-        <div id="save-status" class="ok-text hidden" style="margin-bottom:20px;"></div>
 
         <!-- SNS共有 -->
         <div class="card">
@@ -575,7 +586,7 @@ const DESKTOP_ORDER = {
   diag1: 11, diag2: 12,
 };
 
-const INITIAL_POINTS = 10000;
+const INITIAL_POINTS = 12000;
 const DEFAULT_BET = 300;
 
 // ---- 担当アイドルの「ひとこと」メッセージ(汎用テンプレート。特定キャラの正確な口調再現ではなく、雰囲気重視) ----
@@ -959,8 +970,8 @@ async function loadGameSave() {
   result = null;
 }
 
-async function saveGame() {
-  const status = document.getElementById("save-status");
+async function saveGame(statusElId) {
+  const status = document.getElementById(statusElId || "save-status-bet");
   const { error } = await supabase.from("game_saves").upsert({
     event_id: selectedEvent.id,
     user_id: currentUser.id,
@@ -1316,14 +1327,18 @@ document.getElementById("setlist-modal-backdrop").addEventListener("click", clos
 function updateConfirmState() {
   const btn = document.getElementById("confirm-btn");
   const note = document.getElementById("confirm-note");
-  const saveBtn = document.getElementById("save-btn");
+  const saveBtns = [
+    document.getElementById("save-btn-user"),
+    document.getElementById("save-btn-board"),
+    document.getElementById("save-btn-bet"),
+  ];
   const rescoreBtn = document.getElementById("rescore-btn");
   const msgEl = document.getElementById("confirm-message");
   const setlistReady = eventSetlist && eventSetlist.length > 0;
 
   if (isFinalized()) {
     btn.classList.add("hidden");
-    saveBtn.classList.add("hidden");
+    saveBtns.forEach((b) => b.classList.add("hidden"));
     rescoreBtn.classList.toggle("hidden", !setlistReady);
     note.textContent = setlistReady
       ? ""
@@ -1332,7 +1347,7 @@ function updateConfirmState() {
   } else {
     btn.classList.remove("hidden");
     btn.disabled = false;
-    saveBtn.classList.remove("hidden");
+    saveBtns.forEach((b) => b.classList.remove("hidden"));
     rescoreBtn.classList.add("hidden");
     note.textContent = "予想がまとまったらいつでも「確定する」を押せます(締切前でもOK)。締切を迎えると自動的に確定扱いになります。";
     msgEl.textContent = "";
@@ -1441,7 +1456,9 @@ document.getElementById("confirm-btn").addEventListener("click", async () => {
 document.getElementById("rescore-btn").addEventListener("click", tryAutoScore);
 
 
-document.getElementById("save-btn").addEventListener("click", saveGame);
+document.getElementById("save-btn-user").addEventListener("click", () => saveGame("save-status-user"));
+document.getElementById("save-btn-board").addEventListener("click", () => saveGame("save-status-board"));
+document.getElementById("save-btn-bet").addEventListener("click", () => saveGame("save-status-bet"));
 
 function renderResult() {
   const box = document.getElementById("result-box");
@@ -1768,3 +1785,5 @@ document.getElementById("delete-event-btn").addEventListener("click", async () =
   await loadEvents();
 });
 </script>
+</body>
+</html>
