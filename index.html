@@ -112,6 +112,16 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .legend { display: flex; gap: 18px; align-items: center; margin-bottom: 10px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
 .swatch { width: 12px; height: 12px; border: 1px solid var(--line); border-radius: 3px; display: inline-block; margin-right: 6px; vertical-align: middle; }
 
+/* ---------- セクション見出し・ヘルプボタン ---------- */
+.section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.help-btn {
+  width: 26px; height: 26px; padding: 0; border-radius: 50%;
+  background: var(--card-alt); color: var(--gold); border: 1px solid var(--line);
+  font-weight: 700; font-size: 13px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.help-btn:hover { background: var(--gold); color: #ffffff; }
+
 /* ---------- ユーザー設定 ---------- */
 .user-settings-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
 #username-input { width: 140px; }
@@ -173,17 +183,17 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* ---------- 汎用モーダル(曲名選択・正解セトリ表示で共用) ---------- */
-#song-picker-backdrop, #setlist-modal-backdrop {
+#song-picker-backdrop, #setlist-modal-backdrop, #help-modal-backdrop {
   position: fixed; inset: 0; background: rgba(30,15,5,0.55); z-index: 200;
 }
-#song-picker-modal, #setlist-modal {
+#song-picker-modal, #setlist-modal, #help-modal {
   position: fixed; z-index: 201; background: var(--card); border: 1px solid var(--line);
   display: flex; flex-direction: column;
   left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: min(420px, 92vw); max-height: 78vh; border-radius: 14px; padding: 16px;
 }
 @media (max-width: 700px) {
-  #song-picker-modal, #setlist-modal {
+  #song-picker-modal, #setlist-modal, #help-modal {
     left: 0; right: 0; top: auto; bottom: 0; transform: none;
     width: 100%; max-height: 75vh; border-radius: 16px 16px 0 0;
   }
@@ -346,7 +356,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
 
         <!-- ユーザー設定 -->
         <div class="card">
-          <h2>ユーザー設定</h2>
+          <div class="section-header">
+            <h2 style="margin:0;">ユーザー設定</h2>
+            <button class="help-btn" data-help="user-settings">？</button>
+          </div>
           <div class="user-settings-row">
             <div>
               <div class="stat-label" style="margin-bottom:4px;">ユーザー名</div>
@@ -375,7 +388,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           <div class="card">
             <div class="flex-gap" style="justify-content:space-between;">
               <h2 style="margin:0;">正解セトリが登録されました</h2>
-              <button id="open-setlist-modal-btn" class="btn-ghost btn-sm">正解セトリを見る</button>
+              <div class="flex-gap" style="gap:8px;">
+                <button id="open-setlist-modal-btn" class="btn-ghost btn-sm">正解セトリを見る</button>
+                <button class="help-btn" data-help="after-setlist">？</button>
+              </div>
             </div>
             <p class="lede" style="margin-top:8px;">確定済みの予想は自動的に採点されます。</p>
           </div>
@@ -384,7 +400,13 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
 
         <!-- セットリストビンゴ -->
         <div class="card">
-          <h2>セットリストビンゴ</h2>
+          <div class="section-header">
+            <h2 style="margin:0;">セットリストビンゴ</h2>
+            <div class="flex-gap" style="gap:8px;">
+              <button id="board-random-btn" class="btn-ghost btn-sm">おまかせで埋める</button>
+              <button class="help-btn" data-help="board">？</button>
+            </div>
+          </div>
           <div class="legend">
             <div><span class="swatch" style="background:var(--front);"></span>前半予想(1〜12曲目)</div>
             <div><span class="swatch" style="background:var(--back);"></span>後半予想(13〜24曲目)</div>
@@ -400,7 +422,13 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
 
         <!-- ベット -->
         <div class="card">
-          <h2>ベット</h2>
+          <div class="section-header">
+            <h2 style="margin:0;">ベット</h2>
+            <div class="flex-gap" style="gap:8px;">
+              <button id="bet-random-btn" class="btn-ghost btn-sm">おまかせで配分</button>
+              <button class="help-btn" data-help="bet">？</button>
+            </div>
+          </div>
           <div class="stat-row" style="margin-bottom:16px;">
             <div>
               <div class="stat-label">現在のジュエル</div>
@@ -439,7 +467,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
         <div class="card">
           <div class="flex-gap" style="justify-content:space-between;">
             <h2>SNS共有用テキスト</h2>
-            <button id="share-generate-btn" class="btn-primary">予想一覧を生成</button>
+            <div class="flex-gap" style="gap:8px;">
+              <button id="share-generate-btn" class="btn-primary">予想一覧を生成</button>
+              <button class="help-btn" data-help="sns">？</button>
+            </div>
           </div>
           <p class="lede" style="margin-top:8px;">25マスの予想(＋確定済みならスコアも)をテキスト化する。</p>
           <div id="share-error" class="error-text hidden"></div>
@@ -458,7 +489,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
         <div class="card">
           <div class="flex-gap" style="justify-content:space-between;">
             <h2>ランキング</h2>
-            <button id="ranking-refresh-btn" class="btn-ghost btn-sm">更新</button>
+            <div class="flex-gap" style="gap:8px;">
+              <button id="ranking-refresh-btn" class="btn-ghost btn-sm">更新</button>
+              <button class="help-btn" data-help="ranking">？</button>
+            </div>
           </div>
           <div id="ranking-table-wrap"><p class="note-text">まだ「確定」した参加者がいません。</p></div>
         </div>
@@ -467,7 +501,10 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
       <!-- ===== 管理タブ ===== -->
       <div id="tab-admin" class="hidden">
         <div class="card">
-          <h2>大会の管理</h2>
+          <div class="section-header">
+            <h2 style="margin:0;">大会の管理</h2>
+            <button class="help-btn" data-help="admin">？</button>
+          </div>
           <p class="lede">この大会の正解セトリ(曲目・担当アイドル)をCSVで登録する。1行目が1曲目、最終行がラスト曲(ENCORE)として判定されるので、実際に演奏された順に上から並べること(曲数は24曲固定でなくてよい)。</p>
           <p class="note-text">CSV形式: 1行1曲、「曲名,担当アイドル」の2列。担当アイドルが複数いる場合は「/」区切り(例: きらめきステップ,陽向ひまり/小鳥遊そら)。ヘッダー行はあってもなくてもよい。カンマを含む曲名・アイドル名には現状対応していない。</p>
           <p class="note-text">前半/後半の区切り位置(実際のMCブレイクなど)を指定したい場合は、その位置に1行だけ「FREE」とだけ書いた行を挟む(担当アイドル欄は空でよい)。入れなければ曲数でちょうど半分に自動で割る。</p>
@@ -528,6 +565,16 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ===== ヘルプモーダル ===== -->
+  <div id="help-modal-backdrop" class="hidden"></div>
+  <div id="help-modal" class="hidden">
+    <div class="picker-header">
+      <span id="help-modal-title" class="display-font" style="font-size:18px;"></span>
+      <button id="help-modal-close" class="btn-ghost btn-sm">閉じる</button>
+    </div>
+    <div id="help-modal-body" class="picker-list" style="font-size:13px; line-height:1.7; color:var(--text);"></div>
   </div>
 
   <!-- ===== 正解セトリ表示モーダル ===== -->
@@ -636,6 +683,55 @@ function scoreTier(finalTotal) {
 const TIER_LABEL = { champion: "🏆 優勝", high: "⭐ 高い", normal: "🙂 ふつう", low: "😢 低い" };
 // キャラ設定のテキストが組めるまで、アイドルのセリフ表示は一時的にオフにする
 const SHOW_IDOL_MESSAGES = false;
+
+const HELP_TEXTS = {
+  "user-settings": {
+    title: "ユーザー設定について",
+    body: "ユーザー名(10字まで)・ひとこと・担当アイドルを設定します。ユーザー名とひとことは、ランキングで他の参加者に表示されます。担当アイドルは、BINGO成立ラインにその曲があると得点が倍になるボーナスに使われます。入力しただけではサーバーに保存されないので、下の「保存する」を押してください。",
+  },
+  "after-setlist": {
+    title: "正解登録後に表示について",
+    body: "大会終了後、管理者が正解セトリを登録すると、ここに正解の一覧(モーダル)と、あなたの予想の採点結果(合計ジュエル・ライン別の内訳)が自動的に表示されます。「確定する」を押していない予想は採点されません。",
+  },
+  board: {
+    title: "セットリストビンゴについて",
+    body: "5×5マスに「この曲が来そう」という予想を入れます。左上(OPENING)は1曲目、右下(ENCORE)はラスト曲専用で、曲順まで当てる必要があります。それ以外のマスは、前半/後半のどちらかに入っていれば的中(曲順は問いません)。中央はフリーマスで常に的中扱いです。正解登録後は、BINGO成立したラインのマスが光ります。",
+  },
+  bet: {
+    title: "ベットについて",
+    body: "縦・横・斜めの12ラインそれぞれに、現在のジュエルを自由に配分します。合計がジュエル残高とぴったり同じになる必要があります。1ラインの5マス全部が的中(BINGO)すると、そのラインのベットが2倍になって返ってきます。担当アイドルの曲がBINGOラインに含まれていると、マス1つにつきさらに2倍。正解登録後は、BINGO成立したラインの枠が光ります。",
+  },
+  sns: {
+    title: "SNS共有用テキストについて",
+    body: "予想内容(＋確定済みならスコアも)を、コピーしてSNSやトークアプリに貼り付けられる形のテキストにまとめます。25マス全部を埋めてから生成してください。",
+  },
+  ranking: {
+    title: "ランキングについて",
+    body: "この大会で「確定」した参加者の結果を、獲得ジュエルの多い順(同点はBINGO本数順)に一覧表示します。他の参加者の予想内容(マスの中身)自体は見えません。",
+  },
+  admin: {
+    title: "大会の管理について",
+    body: "この大会の作成者だけが使える機能です。正解セトリ(実際に演奏された曲と担当アイドル)をCSVで登録・上書きできるほか、締切時間の変更、候補曲リスト・担当アイドル一覧の再登録、大会そのものの削除ができます。削除は元に戻せません。",
+  },
+};
+
+function openHelpModal(key) {
+  const info = HELP_TEXTS[key];
+  if (!info) return;
+  document.getElementById("help-modal-title").textContent = info.title;
+  document.getElementById("help-modal-body").innerHTML = `<p style="margin:0;">${info.body}</p>`;
+  document.getElementById("help-modal-backdrop").classList.remove("hidden");
+  document.getElementById("help-modal").classList.remove("hidden");
+}
+function closeHelpModal() {
+  document.getElementById("help-modal-backdrop").classList.add("hidden");
+  document.getElementById("help-modal").classList.add("hidden");
+}
+document.querySelectorAll(".help-btn").forEach((btn) => {
+  btn.addEventListener("click", () => openHelpModal(btn.dataset.help));
+});
+document.getElementById("help-modal-close").addEventListener("click", closeHelpModal);
+document.getElementById("help-modal-backdrop").addEventListener("click", closeHelpModal);
 
 // ---------------- 状態 ----------------
 let currentUser = null;       // {id, label}
@@ -1051,6 +1147,8 @@ function setInputsDisabled(disabled) {
   document.getElementById("idol-select").disabled = disabled;
   document.getElementById("comment-input").disabled = disabled;
   document.getElementById("username-input").disabled = disabled;
+  document.getElementById("board-random-btn").disabled = disabled;
+  document.getElementById("bet-random-btn").disabled = disabled;
 }
 
 function renderIdolSelect() {
@@ -1086,6 +1184,24 @@ function renderUsernameInput() {
   input.value = username;
   input.oninput = (e) => { username = e.target.value.slice(0, 10); };
 }
+
+function randomFillBoard() {
+  if (isFinalized()) return;
+  const usedSongs = new Set(board.filter(Boolean));
+  const availablePool = shuffle(eventSongs.filter((s) => !usedSongs.has(s)));
+  let poolIdx = 0;
+  for (let i = 0; i < 25; i++) {
+    if (i === 12 || board[i]) continue;
+    if (poolIdx < availablePool.length) {
+      board[i] = availablePool[poolIdx];
+      poolIdx++;
+    }
+  }
+  result = null;
+  renderBoard();
+  renderResult();
+}
+document.getElementById("board-random-btn").addEventListener("click", randomFillBoard);
 
 function createSongCell(i, special) {
   const wrap = document.createElement("div");
@@ -1250,6 +1366,37 @@ function renderBetGrid() {
   });
   setInputsDisabled(isFinalized());
 }
+
+function randomDistributeBets() {
+  if (isFinalized()) return;
+  const step = 100;
+  const totalUnits = Math.floor(points / step);
+  const leftover = points - totalUnits * step;
+
+  const weights = LINES.map(() => Math.random());
+  const weightSum = weights.reduce((a, b) => a + b, 0);
+  const unitAlloc = weights.map((w) => Math.floor((w / weightSum) * totalUnits));
+  let remaining = totalUnits - unitAlloc.reduce((a, b) => a + b, 0);
+  while (remaining > 0) {
+    unitAlloc[Math.floor(Math.random() * LINES.length)]++;
+    remaining--;
+  }
+
+  LINES.forEach((line, i) => {
+    bets[line.id] = unitAlloc[i] * step;
+  });
+  // 端数(step未満の余り)は最後にランダムな1ラインへ足す
+  if (leftover > 0) {
+    const idx = Math.floor(Math.random() * LINES.length);
+    bets[LINES[idx].id] += leftover;
+  }
+
+  result = null;
+  renderBetGrid();
+  updatePointsAndBetTotal();
+  renderResult();
+}
+document.getElementById("bet-random-btn").addEventListener("click", randomDistributeBets);
 
 function renderLineIndicatorMini() {
   const mini = document.getElementById("line-indicator-mini");
