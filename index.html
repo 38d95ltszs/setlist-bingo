@@ -462,47 +462,6 @@ td, th { padding: 6px; }
             <span id="save-status-bet" class="ok-text hidden"></span>
           </div>
 
-          <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--line);">
-            <div class="section-header">
-              <h3 class="display-font" style="font-size:18px; margin:0;">期待値シミュレーター</h3>
-              <button class="help-btn" data-help="evsim">？</button>
-            </div>
-            <p class="note-text" style="margin-bottom:12px;">正解は分からないので、確率は自分の自信度に合わせて調整してほしい。今のベット配分でブラウザ内シミュレーションする。</p>
-            <div class="flex-gap" style="gap:18px; margin-bottom:12px;">
-              <div>
-                <label style="display:block; font-size:11px; color:var(--muted); margin-bottom:4px;">通常マスの的中確率(%)</label>
-                <input id="ev-cell-prob" type="number" min="0" max="100" step="1" value="25" style="width:70px;">
-              </div>
-              <div>
-                <label style="display:block; font-size:11px; color:var(--muted); margin-bottom:4px;">OPENING/ENCOREの的中確率(%)</label>
-                <input id="ev-special-prob" type="number" min="0" max="100" step="0.1" value="2" style="width:70px;">
-              </div>
-              <div>
-                <label style="display:block; font-size:11px; color:var(--muted); margin-bottom:4px;">担当曲(ボーナス)である確率(%)</label>
-                <input id="ev-tantou-prob" type="number" min="0" max="100" step="1" value="12" style="width:70px;">
-              </div>
-            </div>
-            <button id="ev-run-btn" class="btn-primary btn-sm">計算する</button>
-            <div id="ev-error" class="error-text hidden" style="margin-top:8px;"></div>
-            <div id="ev-result" class="hidden" style="margin-top:14px;">
-              <div class="flex-gap" style="gap:24px;">
-                <div>
-                  <div class="stat-label">期待値(平均)</div>
-                  <div id="ev-mean" class="stat-value mono-font" style="font-size:20px;"></div>
-                </div>
-                <div>
-                  <div class="stat-label">中央値</div>
-                  <div id="ev-median" class="stat-value mono-font" style="font-size:20px;"></div>
-                </div>
-                <div>
-                  <div class="stat-label">上位10%ライン</div>
-                  <div id="ev-p90" class="stat-value mono-font" style="font-size:20px;"></div>
-                </div>
-              </div>
-              <p id="ev-bingo-prob" class="note-text" style="margin-top:8px;"></p>
-            </div>
-          </div>
-
           <div style="margin-top:28px; padding-top:20px; border-top:1px solid var(--line);">
             <div id="confirm-error" class="error-text hidden"></div>
             <div class="flex-gap" style="margin-bottom:14px;">
@@ -680,11 +639,11 @@ const LINES = [
   { id: "diag1", label: "斜め ↘", idx: [0, 4, 8], mult: 15 },
   { id: "diag2", label: "斜め ↙", idx: [2, 4, 6], mult: 4 },
 ];
-const DESKTOP_ORDER = {
-  row1: 1, row2: 2, row3: 3,
-  col1: 4, col2: 5, col3: 6,
-  diag1: 7, diag2: 8,
-};
+const BET_GROUPS = [
+  { id: "group15", label: "15倍の列", mult: 15, lineIds: ["diag1"] },
+  { id: "group8", label: "8倍の列(4列まとめて)", mult: 8, lineIds: ["row1", "row3", "col1", "col3"] },
+  { id: "group4", label: "4倍の列(3列まとめて)", mult: 4, lineIds: ["row2", "col2", "diag2"] },
+];
 
 const INITIAL_POINTS = 12000;
 const DEFAULT_BET = 300;
@@ -752,15 +711,11 @@ const HELP_TEXTS = {
   },
   bet: {
     title: "夢に賭けるについて",
-    body: "縦・横・斜めの8ラインそれぞれに、現在のジュエルを自由に配分します。合計がジュエル残高とぴったり同じになる必要があります。1ラインの3マス全部が的中(BINGO)すると、そのラインのベットが倍率に応じて返ってきます。倍率はライン毎に難易度で変わります: 斜め↘(OPENING・ENCORE両方必須)は×15、OPENING/ENCOREのどちらか片方を含むライン(横1・横3・縦1・縦3)は×8、それ以外(横2・縦2・斜め↙)は×4。担当アイドルの曲がBINGOラインに含まれていると、マス1つにつきさらに2倍。正解登録後は、BINGO成立したラインの枠が光ります。",
+    body: "8ライン個別にベットする代わりに、倍率でグループ化した3択でシンプルにベットできます: 「15倍の列」(斜め↘の1本)、「8倍の列」(横1・横3・縦1・縦3の4本まとめて)、「4倍の列」(横2・縦2・斜め↙の3本まとめて)。グループに入力した金額は、そのグループ内のライン数で自動的に均等分割される。合計がジュエル残高とぴったり同じになる必要があります。1ラインの3マス全部が的中(BINGO)すると、そのラインぶんのベットが倍率に応じて返ってきます。担当アイドルの曲がBINGOラインに含まれていると、マス1つにつきさらに2倍。正解登録後は、BINGO成立したラインの枠が光ります。",
   },
   trend: {
     title: "トレンドについて",
     body: "確定済みの参加者全員の予想を集計した「みんなの予想傾向」です。1曲目(OPENING)予想・ラスト曲(ENCORE)予想・全体で人気の曲を、それぞれ得票数の多い順に表示します。個人の予想内容(誰がどのマスに何を入れたか)は分からない、集計値のみの表示です。通常は数時間おきに自動更新され、大会の管理者は「今すぐ集計する」でその場で更新できます。",
-  },
-  evsim: {
-    title: "期待値シミュレーターについて",
-    body: "正解セトリはまだ分からないので、「通常マスの的中確率」「OPENING/ENCOREの的中確率」「担当曲(ボーナス)である確率」を自分の自信度に合わせて入力し、今のベット配分でブラウザ内シミュレーション(20,000回試行)する。結果は期待値(平均)・中央値・上位10%ラインと、BINGOが1本以上成立する確率の目安を表示する。あくまで自分で設定した確率での仮の試算であり、実際の結果を保証するものではない。",
   },
   sns: {
     title: "SNS共有について",
@@ -1138,7 +1093,7 @@ function switchTab(tab) {
   if (tab === "predict") {
     isLocked = new Date() >= new Date(selectedEvent.deadline);
     renderDeadlineBanner();
-    setInputsDisabled(isFinalized());
+    setInputsDisabled(isLocked);
     updateConfirmState();
     tryAutoScore();
   }
@@ -1162,7 +1117,7 @@ function renderPredictTab() {
   renderBetGrid();
   updatePointsAndBetTotal();
   renderSetlistDisplay();
-  setInputsDisabled(isFinalized());
+  setInputsDisabled(isLocked);
   updateConfirmState();
   tryAutoScore();
 }
@@ -1173,8 +1128,8 @@ function renderDeadlineBanner() {
     el.className = "deadline-banner locked";
     el.textContent = `🔒 締切済み(締切: ${fmtDateTime(selectedEvent.deadline)}) — 予想内容は閲覧のみです`;
   } else if (confirmed) {
-    el.className = "deadline-banner locked";
-    el.textContent = `✅ 確定済みです(締切: ${fmtDateTime(selectedEvent.deadline)}) — 内容の変更はできません`;
+    el.className = "deadline-banner open";
+    el.textContent = `✅ 確定済みです(締切: ${fmtDateTime(selectedEvent.deadline)}まで、トレンドを見ながら何度でも調整できます)`;
   } else {
     el.className = "deadline-banner open";
     el.textContent = `📝 締切: ${fmtDateTime(selectedEvent.deadline)} まで編集できます`;
@@ -1229,7 +1184,7 @@ function renderUsernameInput() {
 }
 
 function randomFillBoard() {
-  if (isFinalized()) return;
+  if (isLocked) return;
   if (!confirm("本当におまかせしますか？(空いているマスがランダムな曲で埋まります)")) return;
   const usedSongs = new Set(board.filter(Boolean));
   const availablePool = shuffle(eventSongs.filter((s) => !usedSongs.has(s)));
@@ -1302,7 +1257,7 @@ function applyViewportFix(modalEl) {
 }
 
 function openSongPicker(i) {
-  if (isFinalized()) return;
+  if (isLocked) return;
   pickerCellIndex = i;
   const isOpening = i === OPENING_IDX, isEncore = i === ENCORE_IDX;
   const label = isOpening ? "1曲目(OPENING)を選択"
@@ -1399,7 +1354,16 @@ function renderBoard() {
     }
     boardEl.appendChild(cell);
   }
-  setInputsDisabled(isFinalized());
+  setInputsDisabled(isLocked);
+}
+
+function groupTotal(group) {
+  return group.lineIds.reduce((s, lineId) => s + (Number(bets[lineId]) || 0), 0);
+}
+
+function setGroupTotal(group, total) {
+  const perLine = total / group.lineIds.length;
+  group.lineIds.forEach((lineId) => { bets[lineId] = perLine; });
 }
 
 function renderBetGrid() {
@@ -1408,50 +1372,51 @@ function renderBetGrid() {
   renderLineIndicatorMini();
   const bingoLineIds = new Set(result ? result.lineResults.filter((l) => l.status === "BINGO").map((l) => l.id) : []);
   document.getElementById("bet-glow-note").classList.toggle("hidden", bingoLineIds.size === 0);
-  LINES.forEach((line) => {
+  BET_GROUPS.forEach((group, i) => {
+    const isGroupBingo = group.lineIds.some((id) => bingoLineIds.has(id));
     const row = document.createElement("div");
-    row.className = "bet-row" + (bingoLineIds.has(line.id) ? " bingo-glow" : "");
-    row.style.setProperty("--desktop-order", DESKTOP_ORDER[line.id]);
+    row.className = "bet-row" + (isGroupBingo ? " bingo-glow" : "");
+    row.style.setProperty("--desktop-order", i + 1);
     const label = document.createElement("span");
-    label.innerHTML = `${line.label} <span class="mono-font" style="color:var(--gold); font-size:11px;">×${line.mult}</span>`;
+    label.innerHTML = `${group.label} <span class="mono-font" style="color:var(--gold); font-size:11px;">×${group.mult}</span>`;
     const input = document.createElement("input");
-    input.type = "number"; input.min = "0"; input.step = "100"; input.value = bets[line.id];
+    input.type = "number"; input.min = "0"; input.step = "100"; input.value = groupTotal(group);
     input.addEventListener("input", (e) => {
-      bets[line.id] = e.target.value === "" ? "" : Number(e.target.value);
+      setGroupTotal(group, e.target.value === "" ? 0 : Number(e.target.value));
       result = null;
       updatePointsAndBetTotal(); renderResult();
     });
-    input.addEventListener("focus", () => highlightLine(line));
-    input.addEventListener("blur", () => highlightLine(null));
+    input.addEventListener("focus", () => highlightGroup(group));
+    input.addEventListener("blur", () => highlightGroup(null));
     row.appendChild(label); row.appendChild(input);
     grid.appendChild(row);
   });
-  setInputsDisabled(isFinalized());
+  setInputsDisabled(isLocked);
 }
 
 function randomDistributeBets() {
-  if (isFinalized()) return;
+  if (isLocked) return;
   if (!confirm("本当におまかせしますか？(現在のベット配分が上書きされます)")) return;
   const step = 100;
   const totalUnits = Math.floor(points / step);
   const leftover = points - totalUnits * step;
 
-  const weights = LINES.map(() => Math.random());
+  const weights = BET_GROUPS.map(() => Math.random());
   const weightSum = weights.reduce((a, b) => a + b, 0);
   const unitAlloc = weights.map((w) => Math.floor((w / weightSum) * totalUnits));
   let remaining = totalUnits - unitAlloc.reduce((a, b) => a + b, 0);
   while (remaining > 0) {
-    unitAlloc[Math.floor(Math.random() * LINES.length)]++;
+    unitAlloc[Math.floor(Math.random() * BET_GROUPS.length)]++;
     remaining--;
   }
 
-  LINES.forEach((line, i) => {
-    bets[line.id] = unitAlloc[i] * step;
+  BET_GROUPS.forEach((group, i) => {
+    setGroupTotal(group, unitAlloc[i] * step);
   });
-  // 端数(step未満の余り)は最後にランダムな1ラインへ足す
+  // 端数(step未満の余り)は最後にランダムな1グループへ足す
   if (leftover > 0) {
-    const idx = Math.floor(Math.random() * LINES.length);
-    bets[LINES[idx].id] += leftover;
+    const g = BET_GROUPS[Math.floor(Math.random() * BET_GROUPS.length)];
+    setGroupTotal(g, groupTotal(g) + leftover);
   }
 
   result = null;
@@ -1460,72 +1425,6 @@ function randomDistributeBets() {
   renderResult();
 }
 document.getElementById("bet-random-btn").addEventListener("click", randomDistributeBets);
-
-// ================= 期待値シミュレーター =================
-function runExpectedValueSim() {
-  const errEl = document.getElementById("ev-error");
-  errEl.classList.add("hidden");
-
-  const cellProb = Number(document.getElementById("ev-cell-prob").value) / 100;
-  const specialProb = Number(document.getElementById("ev-special-prob").value) / 100;
-  const tantouProb = Number(document.getElementById("ev-tantou-prob").value) / 100;
-
-  if ([cellProb, specialProb, tantouProb].some((p) => isNaN(p) || p < 0 || p > 1)) {
-    errEl.textContent = "確率は0〜100の数値で入力してください。";
-    errEl.classList.remove("hidden");
-    return;
-  }
-
-  const TRIALS = 20000;
-  const finals = [];
-  let bingoCount = 0;
-
-  for (let t = 0; t < TRIALS; t++) {
-    const hits = new Array(BOARD_SIZE);
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      if (!board[i]) { hits[i] = false; continue; }
-      const p = (i === OPENING_IDX || i === ENCORE_IDX) ? specialProb : cellProb;
-      hits[i] = Math.random() < p;
-    }
-
-    let subtotal = 0;
-    let lineBingo = 0;
-    LINES.forEach((line) => {
-      const hitCount = line.idx.filter((i) => hits[i]).length;
-      const bet = Number(bets[line.id]) || 0;
-      let payout;
-      if (hitCount === line.idx.length) {
-        lineBingo++;
-        let tantouCount = 0;
-        line.idx.forEach((i) => { if (hits[i] && Math.random() < tantouProb) tantouCount++; });
-        payout = bet * line.mult * Math.pow(2, tantouCount);
-      } else if (hitCount === 0) {
-        payout = 0;
-      } else {
-        payout = Math.round(bet * (hitCount / line.idx.length));
-      }
-      subtotal += payout;
-    });
-
-    let mult = 1;
-    if (hits[OPENING_IDX]) mult *= 2;
-    if (hits[ENCORE_IDX]) mult *= 2;
-    finals.push(subtotal * mult);
-    if (lineBingo >= 1) bingoCount++;
-  }
-
-  finals.sort((a, b) => a - b);
-  const mean = finals.reduce((s, v) => s + v, 0) / TRIALS;
-  const median = finals[Math.floor(TRIALS * 0.5)];
-  const p90 = finals[Math.floor(TRIALS * 0.9)];
-
-  document.getElementById("ev-mean").textContent = Math.round(mean).toLocaleString();
-  document.getElementById("ev-median").textContent = Math.round(median).toLocaleString();
-  document.getElementById("ev-p90").textContent = Math.round(p90).toLocaleString();
-  document.getElementById("ev-bingo-prob").textContent = `BINGO成立(1本以上)する確率の目安: ${((bingoCount / TRIALS) * 100).toFixed(2)}%`;
-  document.getElementById("ev-result").classList.remove("hidden");
-}
-document.getElementById("ev-run-btn").addEventListener("click", runExpectedValueSim);
 
 function renderLineIndicatorMini() {
   const mini = document.getElementById("line-indicator-mini");
@@ -1538,18 +1437,23 @@ function renderLineIndicatorMini() {
   }
 }
 
-function highlightLine(line) {
+function highlightGroup(group) {
   document.querySelectorAll(".mini-cell").forEach((el) => el.classList.remove("highlight"));
   const label = document.getElementById("line-indicator-label");
-  if (!line) {
+  if (!group) {
     label.textContent = "ベット欄をタップすると、対応するラインがここに光ります";
     return;
   }
-  line.idx.forEach((i) => {
+  const cellSet = new Set();
+  group.lineIds.forEach((lineId) => {
+    const line = LINES.find((l) => l.id === lineId);
+    if (line) line.idx.forEach((i) => cellSet.add(i));
+  });
+  cellSet.forEach((i) => {
     const el = document.querySelector(`.mini-cell[data-mini-index="${i}"]`);
     if (el) el.classList.add("highlight");
   });
-  label.textContent = `${line.label} を選択中`;
+  label.textContent = `${group.label} を選択中`;
 }
 
 function updatePointsAndBetTotal() {
@@ -1609,7 +1513,7 @@ function updateConfirmState() {
   const msgEl = document.getElementById("confirm-message");
   const setlistReady = eventSetlist && eventSetlist.length > 0;
 
-  if (isFinalized()) {
+  if (isLocked) {
     btn.classList.add("hidden");
     saveBtns.forEach((b) => b.classList.add("hidden"));
     rescoreBtn.classList.toggle("hidden", !setlistReady);
@@ -1620,9 +1524,12 @@ function updateConfirmState() {
   } else {
     btn.classList.remove("hidden");
     btn.disabled = false;
+    btn.textContent = confirmed ? "再確定する" : "確定する";
     saveBtns.forEach((b) => b.classList.remove("hidden"));
     rescoreBtn.classList.add("hidden");
-    note.textContent = "予想がまとまったらいつでも「確定する」を押せます(締切前でもOK)。締切を迎えると自動的に確定扱いになります。";
+    note.textContent = confirmed
+      ? "確定済みです。締切までは、トレンドを見ながら何度でも調整・再確定できます。"
+      : "予想がまとまったらいつでも「確定する」を押せます(締切前でもOK)。締切を迎えると自動的に確定扱いになります。";
     msgEl.textContent = "";
   }
 }
@@ -1772,7 +1679,7 @@ document.getElementById("confirm-btn").addEventListener("click", async () => {
   });
 
   renderDeadlineBanner();
-  setInputsDisabled(true);
+  setInputsDisabled(isLocked);
   updateConfirmState();
   document.getElementById("confirm-message").textContent = SHOW_IDOL_MESSAGES ? pickMessage(CONFIRM_MESSAGES, selectedIdol) : "";
   tryAutoScore();
@@ -1952,20 +1859,20 @@ async function generateShareImage() {
 
   const bingoLineIdSet = new Set(result ? result.lineResults.filter((l) => l.status === "BINGO").map((l) => l.id) : []);
   let ly = panelY + 112;
-  const rowH = (panelH - 122) / LINES.length;
-  LINES.forEach((line) => {
-    const isBingoLine = bingoLineIdSet.has(line.id);
+  const rowH = (panelH - 122) / BET_GROUPS.length;
+  BET_GROUPS.forEach((group) => {
+    const isGroupBingo = group.lineIds.some((id) => bingoLineIdSet.has(id));
     ctx.textAlign = "left";
     ctx.font = "600 13px 'Inter', sans-serif";
-    ctx.fillStyle = isBingoLine ? "#e8791e" : "#2b2119";
-    ctx.fillText(line.label, leftX + 18, ly);
+    ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
+    ctx.fillText(group.label, leftX + 18, ly);
     ctx.font = "700 10px 'JetBrains Mono', monospace";
     ctx.fillStyle = "#e8791e";
-    ctx.fillText(`×${line.mult}`, leftX + 110, ly + 2);
+    ctx.fillText(`×${group.mult}`, leftX + 18, ly + 20);
     ctx.textAlign = "right";
-    ctx.font = "700 13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = isBingoLine ? "#e8791e" : "#2b2119";
-    ctx.fillText(`${(Number(bets[line.id]) || 0).toLocaleString()}`, leftX + leftW - 18, ly);
+    ctx.font = "700 15px 'JetBrains Mono', monospace";
+    ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
+    ctx.fillText(`${groupTotal(group).toLocaleString()}`, leftX + leftW - 18, ly);
     ly += rowH;
   });
 
