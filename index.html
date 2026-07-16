@@ -46,6 +46,11 @@ h2 { font-size: 22px; margin: 0 0 12px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 24px; }
 
 input, select, button, textarea { font-family: 'Inter', sans-serif; font-size: 13px; }
+@media (max-width: 700px) {
+  /* iOSは16px未満の入力欄にフォーカスすると自動でズームしてしまうため、
+     スマホでは入力系の文字サイズを16px以上に固定する */
+  input, select, textarea { font-size: 16px !important; }
+}
 
 input[type=text], input[type=password], input[type=number], input[type=date], input[type=datetime-local],
 select, textarea {
@@ -157,12 +162,10 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   position: relative; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 8px;
   display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 6px;
 }
-.cell.front { background: var(--front); }
-.cell.back { background: var(--back); }
+.cell.plain { background: var(--card); }
 .cell.center { background: var(--card-alt); display: flex; align-items: center; justify-content: center; }
 .cell.special { border: 1.5px solid var(--gold); box-shadow: 0 0 0 3px rgba(232,121,30,0.15); }
 .cell .tag { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--gold); letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace; z-index: 2; }
-.cell .half-tag { position: absolute; top: 3px; left: 5px; font-size: 8px; color: var(--muted); font-family: 'JetBrains Mono', monospace; z-index: 2; }
 
 .combo-wrap { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .song-display {
@@ -214,8 +217,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   border-radius: 2px; background: var(--card-alt); border: 1px solid var(--line);
   transition: background 0.15s, box-shadow 0.15s;
 }
-.mini-cell.front { background: var(--front); }
-.mini-cell.back { background: var(--back); }
+.mini-cell.plain { background: var(--card-alt); }
 .mini-cell.center { background: var(--card-alt); }
 .mini-cell.highlight { background: var(--gold); box-shadow: 0 0 0 2px rgba(232,121,30,0.4); }
 #line-indicator-label { font-weight: 600; }
@@ -230,7 +232,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .bet-row span { font-size: 13px; color: var(--muted); flex-shrink: 0; }
 .bet-row input {
   flex: 1 1 50px; min-width: 50px; max-width: 90px; width: auto; text-align: right;
-  padding: 6px 6px;
+  padding: 6px 6px; font-size: 16px;
   -moz-appearance: textfield;
 }
 .bet-row input::-webkit-outer-spin-button,
@@ -418,9 +420,9 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
             </div>
           </div>
           <div class="legend">
-            <div><span class="swatch" style="background:var(--front);"></span>前半予想(1〜12曲目)</div>
-            <div><span class="swatch" style="background:var(--back);"></span>後半予想(13〜24曲目)</div>
-            <div><span class="swatch" style="background:var(--card-alt);"></span>中央FREE(前半/後半の区切り)</div>
+            <div><span class="swatch" style="background:var(--gold); border-color:var(--gold);"></span>左上=1曲目(OPENING)・右下=ラスト曲(ENCORE)、曲順まで的中</div>
+            <div><span class="swatch" style="background:var(--card-alt);"></span>中央FREE(常に的中)</div>
+            <div><span class="swatch" style="background:var(--card);"></span>それ以外は全体のどこかに入っていれば的中</div>
           </div>
           <div id="board"></div>
           <p id="board-glow-note" class="note-text hidden">✨ 光っているラインはBINGO成立!</p>
@@ -518,7 +520,7 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           </div>
           <p class="lede">この大会の正解セトリ(曲目・担当アイドル)をCSVで登録する。1行目が1曲目、最終行がラスト曲(ENCORE)として判定されるので、実際に演奏された順に上から並べること(曲数は24曲固定でなくてよい)。</p>
           <p class="note-text">CSV形式: 1行1曲、「曲名,担当アイドル」の2列。担当アイドルが複数いる場合は「/」区切り(例: きらめきステップ,陽向ひまり/小鳥遊そら)。ヘッダー行はあってもなくてもよい。カンマを含む曲名・アイドル名には現状対応していない。</p>
-          <p class="note-text">前半/後半の区切り位置(実際のMCブレイクなど)を指定したい場合は、その位置に1行だけ「FREE」とだけ書いた行を挟む(担当アイドル欄は空でよい)。入れなければ曲数でちょうど半分に自動で割る。</p>
+          <p class="note-text">1曲目とラスト曲だけ曲順まで判定され、それ以外のマスは「セトリ全体のどこかに入っていれば的中」として判定される。</p>
 
           <label style="display:block; font-size:12px; color:var(--muted); margin:14px 0 4px;">CSVファイルを選択</label>
           <input type="file" id="csv-file" accept=".csv,text/csv">
@@ -625,18 +627,18 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // 候補曲リスト・担当アイドル一覧は大会ごとにCSVで登録される(下記 eventSongs / eventIdols)
 
 const LINES = [
-  { id: "row1", label: "横1列目", idx: [0, 1, 2, 3, 4] },
-  { id: "col1", label: "縦1列目", idx: [0, 5, 10, 15, 20] },
-  { id: "row2", label: "横2列目", idx: [5, 6, 7, 8, 9] },
-  { id: "col2", label: "縦2列目", idx: [1, 6, 11, 16, 21] },
-  { id: "row3", label: "横3列目", idx: [10, 11, 12, 13, 14] },
-  { id: "col3", label: "縦3列目", idx: [2, 7, 12, 17, 22] },
-  { id: "row4", label: "横4列目", idx: [15, 16, 17, 18, 19] },
-  { id: "col4", label: "縦4列目", idx: [3, 8, 13, 18, 23] },
-  { id: "row5", label: "横5列目", idx: [20, 21, 22, 23, 24] },
-  { id: "col5", label: "縦5列目", idx: [4, 9, 14, 19, 24] },
-  { id: "diag1", label: "斜め ↘", idx: [0, 6, 12, 18, 24] },
-  { id: "diag2", label: "斜め ↙", idx: [4, 8, 12, 16, 20] },
+  { id: "row1", label: "横1列目", idx: [0, 1, 2, 3, 4], mult: 7 },
+  { id: "col1", label: "縦1列目", idx: [0, 5, 10, 15, 20], mult: 7 },
+  { id: "row2", label: "横2列目", idx: [5, 6, 7, 8, 9], mult: 5 },
+  { id: "col2", label: "縦2列目", idx: [1, 6, 11, 16, 21], mult: 5 },
+  { id: "row3", label: "横3列目", idx: [10, 11, 12, 13, 14], mult: 3 },
+  { id: "col3", label: "縦3列目", idx: [2, 7, 12, 17, 22], mult: 3 },
+  { id: "row4", label: "横4列目", idx: [15, 16, 17, 18, 19], mult: 5 },
+  { id: "col4", label: "縦4列目", idx: [3, 8, 13, 18, 23], mult: 5 },
+  { id: "row5", label: "横5列目", idx: [20, 21, 22, 23, 24], mult: 7 },
+  { id: "col5", label: "縦5列目", idx: [4, 9, 14, 19, 24], mult: 7 },
+  { id: "diag1", label: "斜め ↘", idx: [0, 6, 12, 18, 24], mult: 10 },
+  { id: "diag2", label: "斜め ↙", idx: [4, 8, 12, 16, 20], mult: 3 },
 ];
 const DESKTOP_ORDER = {
   row1: 1, row2: 2, row3: 3, row4: 4, row5: 5,
@@ -706,11 +708,11 @@ const HELP_TEXTS = {
   },
   board: {
     title: "セットリストビンゴについて",
-    body: "5×5マスに「この曲が来そう」という予想を入れます。左上(OPENING)は1曲目、右下(ENCORE)はラスト曲専用で、曲順まで当てる必要があります。それ以外のマスは、前半/後半のどちらかに入っていれば的中(曲順は問いません)。中央はフリーマスで常に的中扱いです。正解登録後は、BINGO成立したラインのマスが光ります。",
+    body: "5×5マスに「この曲が来そう」という予想を入れます。左上(OPENING)は1曲目、右下(ENCORE)はラスト曲専用で、曲順まで当てる必要があります。それ以外のマスは、セトリ全体のどこかに入っていれば的中(曲順・前半後半は問いません)。中央はフリーマスで常に的中扱いです。正解登録後は、BINGO成立したラインのマスが光ります。",
   },
   bet: {
     title: "ベットについて",
-    body: "縦・横・斜めの12ラインそれぞれに、現在のジュエルを自由に配分します。合計がジュエル残高とぴったり同じになる必要があります。1ラインの5マス全部が的中(BINGO)すると、そのラインのベットが2倍になって返ってきます。担当アイドルの曲がBINGOラインに含まれていると、マス1つにつきさらに2倍。正解登録後は、BINGO成立したラインの枠が光ります。",
+    body: "縦・横・斜めの12ラインそれぞれに、現在のジュエルを自由に配分します。合計がジュエル残高とぴったり同じになる必要があります。1ラインの5マス全部が的中(BINGO)すると、そのラインのベットが倍率に応じて返ってきます。倍率はライン毎に難易度で変わります: 斜め↘(OPENING・ENCORE両方必須)は×10、OPENING/ENCOREのどちらか片方を含むライン(横1・横5・縦1・縦5)は×7、FREEを経由するライン(横3・縦3・斜め↙)は×3、それ以外(横2・横4・縦2・縦4)は×5。担当アイドルの曲がBINGOラインに含まれていると、マス1つにつきさらに2倍。正解登録後は、BINGO成立したラインの枠が光ります。",
   },
   sns: {
     title: "SNS共有用テキストについて",
@@ -764,7 +766,6 @@ let comment = "";
 let username = "";
 let result = null;
 let parsedCsvRows = null; // 管理タブでパース済みのCSV
-let parsedFrontCount = null; // FREE行から算出した前半曲数(nullなら自動で半分に割る)
 
 // ---------------- ユーティリティ ----------------
 function shuffle(arr) {
@@ -777,8 +778,7 @@ function shuffle(arr) {
 }
 function groupOf(i) {
   if (i === 12) return "free";
-  if (i < 12) return "front";
-  return "back";
+  return "plain";
 }
 function fakeEmail(id) { return `${id.trim().toLowerCase()}@${FAKE_EMAIL_DOMAIN}`; }
 function songMembersMap() {
@@ -913,7 +913,6 @@ function resetAppStateOnLogout() {
   username = "";
   result = null;
   parsedCsvRows = null;
-  parsedFrontCount = null;
 
   document.getElementById("event-select").innerHTML = '<option value="">大会を選択…</option>';
   document.getElementById("event-content").classList.add("hidden");
@@ -1276,13 +1275,40 @@ function createSongCell(i, special) {
 
 // ---- 曲名選択モーダル(検索ピッカー) ----
 let pickerCellIndex = null;
+let pickerViewportCleanup = null;
+
+function applyViewportFix(modalEl) {
+  if (!window.visualViewport) return () => {};
+  const vv = window.visualViewport;
+  const update = () => {
+    if (window.innerWidth <= 700) {
+      // キーボード表示分だけ視覚的なビューポートが縮むので、その範囲に収まるよう
+      // モーダルの下端・最大高さを都度合わせる(キーボードに候補リストが隠れる対策)
+      const bottomOffset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+      modalEl.style.bottom = bottomOffset + "px";
+      modalEl.style.maxHeight = (vv.height * 0.9) + "px";
+    } else {
+      modalEl.style.maxHeight = (vv.height * 0.78) + "px";
+    }
+  };
+  vv.addEventListener("resize", update);
+  vv.addEventListener("scroll", update);
+  update();
+  return () => {
+    vv.removeEventListener("resize", update);
+    vv.removeEventListener("scroll", update);
+    modalEl.style.bottom = "";
+    modalEl.style.maxHeight = "";
+  };
+}
+
 function openSongPicker(i) {
   if (isFinalized()) return;
   pickerCellIndex = i;
   const isOpening = i === 0, isEncore = i === 24;
   const label = isOpening ? "1曲目(OPENING)を選択"
     : isEncore ? "ラスト曲(ENCORE)を選択"
-    : (groupOf(i) === "front" ? "前半予想を選択" : "後半予想を選択");
+    : "予想を選択";
   document.getElementById("song-picker-label").textContent = label;
   const searchInput = document.getElementById("song-picker-search");
   searchInput.value = "";
@@ -1290,11 +1316,13 @@ function openSongPicker(i) {
   document.getElementById("song-picker-backdrop").classList.remove("hidden");
   document.getElementById("song-picker-modal").classList.remove("hidden");
   searchInput.focus();
+  pickerViewportCleanup = applyViewportFix(document.getElementById("song-picker-modal"));
 }
 function closeSongPicker() {
   document.getElementById("song-picker-backdrop").classList.add("hidden");
   document.getElementById("song-picker-modal").classList.add("hidden");
   pickerCellIndex = null;
+  if (pickerViewportCleanup) { pickerViewportCleanup(); pickerViewportCleanup = null; }
 }
 function renderPickerList(query) {
   const listEl = document.getElementById("song-picker-list");
@@ -1351,11 +1379,6 @@ function renderBoard() {
       tag.className = "tag"; tag.textContent = isOpening ? "OPENING" : "ENCORE";
       cell.appendChild(tag);
     }
-    if (!isCenter && !special) {
-      const halfTag = document.createElement("div");
-      halfTag.className = "half-tag"; halfTag.textContent = group === "front" ? "前半" : "後半";
-      cell.appendChild(halfTag);
-    }
     if (isCenter) {
       const label = document.createElement("div");
       label.className = "free-label"; label.textContent = "FREE";
@@ -1371,8 +1394,7 @@ function renderBoard() {
       else if (isEncore) isHit = result.encoreHit;
       else {
         const songs = eventSetlist.map((e) => e.song);
-        const mid = (selectedEvent.setlist_front_count != null) ? selectedEvent.setlist_front_count : Math.ceil(songs.length / 2);
-        isHit = group === "front" ? songs.slice(0, mid).includes(song) : songs.slice(mid).includes(song);
+        isHit = songs.includes(song);
       }
       const mark = document.createElement("div");
       mark.className = "hit-mark";
@@ -1397,7 +1419,7 @@ function renderBetGrid() {
     row.className = "bet-row" + (bingoLineIds.has(line.id) ? " bingo-glow" : "");
     row.style.setProperty("--desktop-order", DESKTOP_ORDER[line.id]);
     const label = document.createElement("span");
-    label.textContent = line.label;
+    label.innerHTML = `${line.label} <span class="mono-font" style="color:var(--gold); font-size:11px;">×${line.mult}</span>`;
     const input = document.createElement("input");
     input.type = "number"; input.min = "0"; input.step = "100"; input.value = bets[line.id];
     input.addEventListener("input", (e) => {
@@ -1489,21 +1511,18 @@ function renderSetlistDisplay() {
   if (!setlistReady) return;
 
   const total = eventSetlist.length;
-  const mid = (selectedEvent.setlist_front_count != null) ? selectedEvent.setlist_front_count : Math.ceil(total / 2);
-  const front = eventSetlist.slice(0, mid);
-  const back = eventSetlist.slice(mid);
-
-  function listHtml(entries, startNum, highlightFirst, highlightLast) {
-    return `<ol start="${startNum}" style="margin:0; padding-left:20px; color:var(--muted);">${entries
-      .map((e, i) => `<li style="color:${(highlightFirst && i === 0) || (highlightLast && i === entries.length - 1) ? "var(--gold)" : "var(--muted)"};">${e.song} <span style="opacity:0.7;">(${(e.members || []).join("・")})</span></li>`)
-      .join("")}</ol>`;
-  }
+  const itemsHtml = eventSetlist
+    .map((e, i) => {
+      const isFirst = i === 0, isLast = i === total - 1;
+      const color = (isFirst || isLast) ? "var(--gold)" : "var(--muted)";
+      const badge = isFirst ? ' <span style="color:var(--gold); font-size:11px;">(OPENING)</span>'
+        : isLast ? ' <span style="color:var(--gold); font-size:11px;">(ENCORE)</span>' : "";
+      return `<li style="color:${color};">${e.song}${badge} <span style="opacity:0.7;">(${(e.members || []).join("・")})</span></li>`;
+    })
+    .join("");
   document.getElementById("setlist-modal-body").innerHTML = `
-    <p class="note-text" style="margin-bottom:10px;">全${total}曲(OPENING/ENCORE判定は1曲目・${total}曲目)</p>
-    <div class="setlist-cols">
-      <div><div class="col-title">前半(1〜${mid}曲目)</div>${listHtml(front, 1, true, false)}</div>
-      <div><div class="col-title">後半(${mid + 1}〜${total}曲目)</div>${listHtml(back, mid + 1, false, true)}</div>
-    </div>`;
+    <p class="note-text" style="margin-bottom:10px;">全${total}曲</p>
+    <ol style="margin:0; padding-left:20px; color:var(--muted);">${itemsHtml}</ol>`;
 }
 
 function openSetlistModal() {
@@ -1550,17 +1569,13 @@ function updateConfirmState() {
 
 function computeScore() {
   const songs = eventSetlist.map((e) => e.song);
-  const mid = (selectedEvent.setlist_front_count != null) ? selectedEvent.setlist_front_count : Math.ceil(songs.length / 2);
-  const front = songs.slice(0, mid);
-  const back = songs.slice(mid);
   const members = songMembersMap();
 
   const hits = board.map((song, i) => {
     if (i === 12) return true;
     if (i === 0) return song === songs[0];
     if (i === 24) return song === songs[songs.length - 1];
-    if (i < 12) return front.includes(song);
-    return back.includes(song);
+    return songs.includes(song);
   });
 
   const lineResults = LINES.map((line) => {
@@ -1570,7 +1585,7 @@ function computeScore() {
     if (hitCount === 5) {
       status = "BINGO";
       tantouCount = line.idx.filter((i) => i !== 12 && hits[i] && members[board[i]]?.includes(selectedIdol)).length;
-      payout = bet * 2 * Math.pow(2, tantouCount);
+      payout = bet * line.mult * Math.pow(2, tantouCount);
     } else if (hitCount === 0) {
       status = "不成立"; payout = 0;
     } else {
@@ -1663,7 +1678,7 @@ function renderResult() {
       <td>${l.label}</td>
       <td class="mono-font">${l.bet}</td>
       <td class="mono-font">${l.hitCount}/5</td>
-      <td style="color:${l.status === "BINGO" ? "var(--gold)" : l.status === "一部的中" ? "var(--teal)" : "var(--pink)"}; font-weight:600;">${l.status}</td>
+      <td style="color:${l.status === "BINGO" ? "var(--gold)" : l.status === "一部的中" ? "var(--teal)" : "var(--pink)"}; font-weight:600;">${l.status}${l.status === "BINGO" ? ` (基本×${l.mult})` : ""}</td>
       <td class="mono-font">${l.status === "BINGO" ? `${l.tantouCount}マス (×${Math.pow(2, l.tantouCount)})` : "-"}</td>
       <td class="mono-font">${l.payout}</td>
     </tr>`).join("");
@@ -1775,7 +1790,6 @@ function escapeHtml(str) {
 function renderAdminTab() {
   document.getElementById("edit-deadline-input").value = toDatetimeLocalValue(selectedEvent.deadline);
   parsedCsvRows = null;
-  parsedFrontCount = null;
   document.getElementById("csv-submit-btn").classList.add("hidden");
   document.getElementById("admin-preview").innerHTML = "";
   document.getElementById("csv-error").classList.add("hidden");
@@ -1815,19 +1829,7 @@ document.getElementById("csv-parse-btn").addEventListener("click", () => {
     return;
   }
 
-  // FREE行(前半/後半の区切り)を検出。実曲としては扱わず、位置だけ記録する
-  let frontCount = null;
-  const songLines = [];
-  lines.forEach((line) => {
-    const firstCol = (line.split(",")[0] || "").trim();
-    if (/^free$/i.test(firstCol)) {
-      if (frontCount === null) frontCount = songLines.length;
-      return;
-    }
-    songLines.push(line);
-  });
-
-  const rows = songLines.map((line, idx) => {
+  const rows = lines.map((line, idx) => {
     const cols = line.split(",");
     const song = (cols[0] || "").trim();
     const membersRaw = (cols[1] || "").trim();
@@ -1840,23 +1842,13 @@ document.getElementById("csv-parse-btn").addEventListener("click", () => {
     errEl.classList.remove("hidden");
     return;
   }
-  if (frontCount !== null && (frontCount === 0 || frontCount === rows.length)) {
-    errEl.textContent = "FREE行の位置が先頭または末尾になっています。前半・後半それぞれに1曲以上来るように置いてください。";
-    errEl.classList.remove("hidden");
-    return;
-  }
 
   parsedCsvRows = rows;
-  parsedFrontCount = frontCount;
   const preview = document.getElementById("admin-preview");
-  const rowsHtml = rows.map((r, i) => {
-    const divider = frontCount !== null && i === frontCount
-      ? `<tr><td colspan="3" style="text-align:center; color:var(--gold); font-weight:700;">— FREE(前半/後半の区切り) —</td></tr>`
-      : "";
-    return `${divider}<tr><td class="mono-font">${r.position}</td><td>${escapeHtml(r.song)}</td><td>${escapeHtml(r.members.join("・") || "-")}</td></tr>`;
-  }).join("");
-  preview.innerHTML = `<div class="table-scroll"><table><thead><tr><th>#</th><th>曲名</th><th>担当アイドル</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
-    <p class="note-text" style="margin-top:8px;">${frontCount !== null ? `前半${frontCount}曲・後半${rows.length - frontCount}曲として登録されます。` : "FREE行が見つからなかったので、前半/後半は曲数で自動的に半分に割ります。"}</p>`;
+  const rowsHtml = rows
+    .map((r) => `<tr><td class="mono-font">${r.position}</td><td>${escapeHtml(r.song)}</td><td>${escapeHtml(r.members.join("・") || "-")}</td></tr>`)
+    .join("");
+  preview.innerHTML = `<div class="table-scroll"><table><thead><tr><th>#</th><th>曲名</th><th>担当アイドル</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
   document.getElementById("csv-submit-btn").classList.remove("hidden");
 });
 
@@ -1872,10 +1864,6 @@ document.getElementById("csv-submit-btn").addEventListener("click", async () => 
   const rowsToInsert = parsedCsvRows.map((r) => ({ event_id: selectedEvent.id, position: r.position, song: r.song, members: r.members }));
   const { error: insError } = await supabase.from("event_setlists").insert(rowsToInsert);
   if (insError) { errEl.textContent = "登録に失敗しました: " + insError.message; errEl.classList.remove("hidden"); return; }
-
-  const { error: updError } = await supabase.from("events").update({ setlist_front_count: parsedFrontCount }).eq("id", selectedEvent.id);
-  if (updError) { errEl.textContent = "登録に失敗しました: " + updError.message; errEl.classList.remove("hidden"); return; }
-  selectedEvent.setlist_front_count = parsedFrontCount;
 
   statusEl.textContent = "✓ 正解セトリを登録しました";
   statusEl.classList.remove("hidden");
