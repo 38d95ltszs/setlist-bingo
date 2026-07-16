@@ -446,7 +446,7 @@ let board = Array(25).fill(null);
 let bets = {};
 LINES.forEach((l) => (bets[l.id] = DEFAULT_BET));
 let points = INITIAL_POINTS;
-let selectedIdol = IDOL_POOL[0];
+let selectedIdol = "";
 let comment = "";
 let result = null;
 let parsedCsvRows = null; // 管理タブでパース済みのCSV
