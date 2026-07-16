@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学園セトリ予想ビンゴ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== 認証画面 ===================== -->
+  <div id="auth-screen" class="wrap">
+    <div class="card">
+      <div class="eyebrow">SETLIST BINGO</div>
+      <h1 class="display-font" style="font-size:32px;">ログイン</h1>
+      <p class="lede">IDとパスワードでログイン。初めての場合は新規登録してください。</p>
+
+      <label for="auth-id">ID</label>
+      <input id="auth-id" type="text" autocomplete="username" placeholder="例: kawamu">
+
+      <label for="auth-password">パスワード</label>
+      <input id="auth-password" type="password" autocomplete="current-password" placeholder="8文字以上">
+
+      <div id="auth-error" class="error-text hidden"></div>
+
+      <div class="auth-actions">
+        <button id="auth-submit" class="btn-primary">ログイン</button>
+        <button id="auth-toggle-mode">新規登録はこちら</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ゲーム画面 ===================== -->
+  <div id="game-screen" class="wrap hidden">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">SETLIST BINGO</div>
+        <h1 class="display-font">学園セトリ予想ビンゴ</h1>
+      </div>
+      <div class="whoami">
+        <span id="whoami-id">-</span> でログイン中
+        <button id="logout-btn" class="btn-ghost" style="margin-left:10px; padding:6px 12px; font-size:12px;">ログアウト</button>
+      </div>
+    </div>
+    <p class="lede">5×5マスにセトリ予想を入力し、12ライン(縦・横・斜め)に持ち点をベット。公演終了後、正解セトリで一括判定する。内容は自動でSupabaseに保存され、次回ログイン時に続きから再開できる。</p>
+
+    <!-- 持ち点・担当アイドル -->
+    <div class="card stat-row">
+      <div class="stat-block">
+        <div class="stat-label">現在の持ち点</div>
+        <div id="points-value" class="stat-value mono-font">150</div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat-block">
+        <div class="stat-label">ベット合計</div>
+        <div id="bet-total-value" class="stat-value mono-font">120</div>
+      </div>
+      <div id="bet-status" class="ok-text"></div>
+      <div class="divider" style="margin-left:auto;"></div>
+      <div class="stat-block">
+        <div class="stat-label" style="margin-bottom:4px;">担当アイドル</div>
+        <select id="idol-select"></select>
+      </div>
+    </div>
+
+    <!-- 凡例 -->
+    <div class="legend">
+      <div><span class="swatch" style="background:var(--front);"></span>前半予想(1〜12曲目)</div>
+      <div><span class="swatch" style="background:var(--back);"></span>後半予想(13〜24曲目)</div>
+      <div><span class="swatch" style="background:var(--card-alt);"></span>中央FREE(前半/後半の区切り)</div>
+    </div>
+
+    <!-- ボード -->
+    <div id="board"></div>
+
+    <!-- SNS共有 -->
+    <div class="card">
+      <div class="flex-gap" style="justify-content:space-between;">
+        <h2>SNS共有用テキスト</h2>
+        <button id="share-generate-btn" class="btn-primary">予想一覧を生成</button>
+      </div>
+      <p class="lede" style="margin-top:8px;">25マスの予想(＋判定済みならスコアも)をテキスト化する。判定前でも生成できる。</p>
+      <div id="share-error" class="error-text hidden"></div>
+      <div id="share-box" class="hidden" style="margin-top:14px;">
+        <textarea id="share-text-area" rows="14" readonly></textarea>
+        <div class="flex-gap" style="margin-top:8px;">
+          <button id="share-copy-btn" class="btn-gold">コピー</button>
+          <span id="share-copied" class="ok-text hidden">✓ コピーしました</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ベット -->
+    <div class="card">
+      <h2>ライン別ベット</h2>
+      <div id="bet-grid"></div>
+    </div>
+
+    <!-- 正解セトリ(テスト用) -->
+    <div class="card">
+      <div class="flex-gap" style="justify-content:space-between;">
+        <h2>正解セトリ(テスト用ダミー)</h2>
+        <button id="gen-setlist-btn" class="btn-gold">ダミー正解セトリを生成</button>
+      </div>
+      <div id="setlist-display"></div>
+    </div>
+
+    <!-- アクション -->
+    <div id="judge-error" class="error-text hidden"></div>
+    <div class="flex-gap" style="margin-bottom:28px;">
+      <button id="judge-btn" class="btn-primary">判定する</button>
+      <button id="save-btn" class="btn-gold">今すぐ保存</button>
+      <button id="new-round-btn" class="btn-ghost">新しいラウンドを始める(持ち点は維持)</button>
+    </div>
+    <div id="save-status" class="ok-text hidden" style="margin-bottom:20px;"></div>
+
+    <!-- 結果 -->
+    <div id="result-box" class="card hidden" style="border-color: var(--gold);"></div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
