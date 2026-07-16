@@ -459,6 +459,7 @@ textarea#share-text-area { width: 100%; box-sizing: border-box; padding: 12px; r
           <h2>大会の管理</h2>
           <p class="lede">この大会の正解セトリ(曲目・担当アイドル)をCSVで登録する。1行目が1曲目、最終行がラスト曲(ENCORE)として判定されるので、実際に演奏された順に上から並べること(曲数は24曲固定でなくてよい)。</p>
           <p class="note-text">CSV形式: 1行1曲、「曲名,担当アイドル」の2列。担当アイドルが複数いる場合は「/」区切り(例: きらめきステップ,陽向ひまり/小鳥遊そら)。ヘッダー行はあってもなくてもよい。カンマを含む曲名・アイドル名には現状対応していない。</p>
+          <p class="note-text">前半/後半の区切り位置(実際のMCブレイクなど)を指定したい場合は、その位置に1行だけ「FREE」とだけ書いた行を挟む(担当アイドル欄は空でよい)。入れなければ曲数でちょうど半分に自動で割る。</p>
 
           <label style="display:block; font-size:12px; color:var(--muted); margin:14px 0 4px;">CSVファイルを選択</label>
           <input type="file" id="csv-file" accept=".csv,text/csv">
@@ -643,6 +644,7 @@ let comment = "";
 let username = "";
 let result = null;
 let parsedCsvRows = null; // 管理タブでパース済みのCSV
+let parsedFrontCount = null; // FREE行から算出した前半曲数(nullなら自動で半分に割る)
 
 // ---------------- ユーティリティ ----------------
 function shuffle(arr) {
@@ -1194,7 +1196,7 @@ function renderBoard() {
       else if (isEncore) isHit = result.encoreHit;
       else {
         const songs = eventSetlist.map((e) => e.song);
-        const mid = Math.ceil(songs.length / 2);
+        const mid = (selectedEvent.setlist_front_count != null) ? selectedEvent.setlist_front_count : Math.ceil(songs.length / 2);
         isHit = group === "front" ? songs.slice(0, mid).includes(song) : songs.slice(mid).includes(song);
       }
       const mark = document.createElement("div");
@@ -1280,7 +1282,7 @@ function renderSetlistDisplay() {
   if (!setlistReady) return;
 
   const total = eventSetlist.length;
-  const mid = Math.ceil(total / 2);
+  const mid = (selectedEvent.setlist_front_count != null) ? selectedEvent.setlist_front_count : Math.ceil(total / 2);
   const front = eventSetlist.slice(0, mid);
   const back = eventSetlist.slice(mid);
 
@@ -1337,7 +1339,7 @@ function updateConfirmState() {
 
 function computeScore() {
   const songs = eventSetlist.map((e) => e.song);
-  const mid = Math.ceil(songs.length / 2);
+  const mid = (selectedEvent.setlist_front_count != null) ? selectedEvent.setlist_front_count : Math.ceil(songs.length / 2);
   const front = songs.slice(0, mid);
   const back = songs.slice(mid);
   const members = songMembersMap();
@@ -1560,6 +1562,7 @@ function escapeHtml(str) {
 function renderAdminTab() {
   document.getElementById("edit-deadline-input").value = toDatetimeLocalValue(selectedEvent.deadline);
   parsedCsvRows = null;
+  parsedFrontCount = null;
   document.getElementById("csv-submit-btn").classList.add("hidden");
   document.getElementById("admin-preview").innerHTML = "";
   document.getElementById("csv-error").classList.add("hidden");
@@ -1599,7 +1602,19 @@ document.getElementById("csv-parse-btn").addEventListener("click", () => {
     return;
   }
 
-  const rows = lines.map((line, idx) => {
+  // FREE行(前半/後半の区切り)を検出。実曲としては扱わず、位置だけ記録する
+  let frontCount = null;
+  const songLines = [];
+  lines.forEach((line) => {
+    const firstCol = (line.split(",")[0] || "").trim();
+    if (/^free$/i.test(firstCol)) {
+      if (frontCount === null) frontCount = songLines.length;
+      return;
+    }
+    songLines.push(line);
+  });
+
+  const rows = songLines.map((line, idx) => {
     const cols = line.split(",");
     const song = (cols[0] || "").trim();
     const membersRaw = (cols[1] || "").trim();
@@ -1612,12 +1627,23 @@ document.getElementById("csv-parse-btn").addEventListener("click", () => {
     errEl.classList.remove("hidden");
     return;
   }
+  if (frontCount !== null && (frontCount === 0 || frontCount === rows.length)) {
+    errEl.textContent = "FREE行の位置が先頭または末尾になっています。前半・後半それぞれに1曲以上来るように置いてください。";
+    errEl.classList.remove("hidden");
+    return;
+  }
 
   parsedCsvRows = rows;
+  parsedFrontCount = frontCount;
   const preview = document.getElementById("admin-preview");
-  preview.innerHTML = `<table><thead><tr><th>#</th><th>曲名</th><th>担当アイドル</th></tr></thead><tbody>${rows
-    .map((r) => `<tr><td class="mono-font">${r.position}</td><td>${escapeHtml(r.song)}</td><td>${escapeHtml(r.members.join("・") || "-")}</td></tr>`)
-    .join("")}</tbody></table>`;
+  const rowsHtml = rows.map((r, i) => {
+    const divider = frontCount !== null && i === frontCount
+      ? `<tr><td colspan="3" style="text-align:center; color:var(--gold); font-weight:700;">— FREE(前半/後半の区切り) —</td></tr>`
+      : "";
+    return `${divider}<tr><td class="mono-font">${r.position}</td><td>${escapeHtml(r.song)}</td><td>${escapeHtml(r.members.join("・") || "-")}</td></tr>`;
+  }).join("");
+  preview.innerHTML = `<table><thead><tr><th>#</th><th>曲名</th><th>担当アイドル</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+    <p class="note-text" style="margin-top:8px;">${frontCount !== null ? `前半${frontCount}曲・後半${rows.length - frontCount}曲として登録されます。` : "FREE行が見つからなかったので、前半/後半は曲数で自動的に半分に割ります。"}</p>`;
   document.getElementById("csv-submit-btn").classList.remove("hidden");
 });
 
@@ -1633,6 +1659,10 @@ document.getElementById("csv-submit-btn").addEventListener("click", async () => 
   const rowsToInsert = parsedCsvRows.map((r) => ({ event_id: selectedEvent.id, position: r.position, song: r.song, members: r.members }));
   const { error: insError } = await supabase.from("event_setlists").insert(rowsToInsert);
   if (insError) { errEl.textContent = "登録に失敗しました: " + insError.message; errEl.classList.remove("hidden"); return; }
+
+  const { error: updError } = await supabase.from("events").update({ setlist_front_count: parsedFrontCount }).eq("id", selectedEvent.id);
+  if (updError) { errEl.textContent = "登録に失敗しました: " + updError.message; errEl.classList.remove("hidden"); return; }
+  selectedEvent.setlist_front_count = parsedFrontCount;
 
   statusEl.textContent = "✓ 正解セトリを登録しました";
   statusEl.classList.remove("hidden");
