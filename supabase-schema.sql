@@ -14,11 +14,13 @@ create table if not exists public.events (
   deadline timestamptz not null,     -- 予想締切
   created_by uuid references auth.users(id) not null,
   setlist_front_count integer,       -- (非推奨・未使用) 前半/後半を分けていた頃の名残。今は判定に使っていない
+  casts_file text default 'casts-data.json', -- この大会で使う担当アイドルJSON(casts-manifest.jsonのfile値)
   created_at timestamptz not null default now()
 );
 
 -- 既存のテーブルに対しては以下を個別に実行してください(既にある場合はエラーにならずスキップされる)
 alter table public.events add column if not exists setlist_front_count integer;
+alter table public.events add column if not exists casts_file text default 'casts-data.json';
 
 alter table public.events enable row level security;
 
@@ -331,6 +333,18 @@ begin
             group by song_name
             order by votes desc
             limit 5
+          ) t
+        ),
+        -- 担当アイドル人気ベスト3
+        'popular_idols', (
+          select coalesce(jsonb_agg(t), '[]'::jsonb) from (
+            select selected_idol as idol_name, count(*) as votes
+            from public.game_saves
+            where event_id = evt_id and confirmed = true
+              and selected_idol is not null and selected_idol <> ''
+            group by selected_idol
+            order by votes desc
+            limit 3
           ) t
         )
       ),
