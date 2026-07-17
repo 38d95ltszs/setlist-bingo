@@ -34,7 +34,14 @@ body {
 .display-font { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
 .mono-font { font-family: 'JetBrains Mono', monospace; }
 
-.wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 60px; }
+.wrap { max-width: 375px; margin: 0 auto; padding: 20px 16px 90px; }
+
+.app-footer {
+  padding-top: 24px; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.3);
+  font-size: 11px; line-height: 1.7; color: rgba(255,255,255,0.75); text-align: center;
+}
+.app-footer p { margin: 0 0 12px; }
+.app-footer a { color: rgba(255,255,255,0.9); word-break: break-all; }
 .hidden { display: none !important; }
 
 h1 { font-size: 40px; margin: 0; line-height: 1; }
@@ -45,11 +52,8 @@ h2 { font-size: 22px; margin: 0 0 12px; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 24px; }
 
-input, select, button, textarea { font-family: 'Inter', sans-serif; font-size: 13px; }
-@media (max-width: 700px) {
-  /* iOSは16px未満の入力欄にフォーカスすると自動でズームしてしまうため、
-     スマホでは入力系の文字サイズを16px以上に固定する */
-  input, select, textarea { font-size: 16px !important; }
+input, select, button, textarea {
+  font-family: 'Inter', sans-serif; font-size: 16px; /* iOSの自動ズーム防止のため常に16px以上 */
 }
 
 input[type=text], input[type=password], input[type=number], input[type=date], input[type=datetime-local],
@@ -111,7 +115,6 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .stat-label { font-size: 11px; color: var(--muted); }
 .stat-value { font-size: 22px; font-weight: 700; }
 .divider { width: 1px; height: 32px; background: var(--line); flex-shrink: 0; }
-#comment-input { width: 180px; }
 
 /* ---------- 凡例 ---------- */
 .legend { display: flex; gap: 18px; align-items: center; margin-bottom: 10px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
@@ -127,12 +130,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 .help-btn:hover { background: var(--gold); color: #ffffff; }
 
-/* ---------- ユーザー設定 ---------- */
-.user-settings-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
-#username-input { width: 140px; }
-
-/* アクション欄はカードで囲っていないオレンジ地の上にあるため、説明文は白にする */
-/* confirm-noteは現在ベットカード内(クリーム背景)にあるため、.note-textの標準色をそのまま使う */
+/* ---------- ユーザー設定(プロデューサー名刺) ---------- */
+#username-input, #idol-select { width: 100%; }
 
 /* ---------- 吹き出し(担当アイドルのひとこと) ---------- */
 .speech-bubble {
@@ -178,9 +177,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 #board.locked .song-display { cursor: default; pointer-events: none; }
 #board.locked .clear-btn { display: none; }
 
-@media (max-width: 700px) {
-  .cell { aspect-ratio: 4 / 5; }
-}
+.cell { aspect-ratio: 4 / 5; }
 
 /* ---------- 汎用モーダル(曲名選択・正解セトリ表示で共用) ---------- */
 #song-picker-backdrop, #setlist-modal-backdrop, #help-modal-backdrop {
@@ -189,14 +186,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 #song-picker-modal, #setlist-modal, #help-modal {
   position: fixed; z-index: 201; background: var(--card); border: 1px solid var(--line);
   display: flex; flex-direction: column;
-  left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: min(420px, 92vw); max-height: 78vh; border-radius: 14px; padding: 16px;
-}
-@media (max-width: 700px) {
-  #song-picker-modal, #setlist-modal, #help-modal {
-    left: 0; right: 0; top: auto; bottom: 0; transform: none;
-    width: 100%; max-height: 75vh; border-radius: 16px 16px 0 0;
-  }
+  left: 50%; top: auto; bottom: 0; transform: translateX(-50%);
+  width: min(375px, 100vw); max-height: 75vh; border-radius: 16px 16px 0 0; padding: 16px;
 }
 .picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 #song-picker-search { width: 100%; font-size: 15px; padding: 10px 12px; margin-bottom: 10px; }
@@ -213,6 +204,24 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .row-mini-cell.filled { background: var(--gold); border-color: var(--gold); }
 .row-mini-cell.special { border: 1.5px solid var(--pink); box-shadow: 0 0 0 1px var(--pink); }
 .row-mini-cell.special.filled { background: var(--gold); border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink); }
+
+/* ---------- フロート保存ボタン(常に375px幅の列に揃える) ---------- */
+#float-save-wrap {
+  position: fixed; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 375px; max-width: 100vw; height: 0; pointer-events: none; z-index: 150;
+}
+#float-save-btn {
+  position: absolute; right: 20px; bottom: 20px; pointer-events: auto;
+  background: var(--gold); color: #3a2410; border: none; border-radius: 999px;
+  padding: 15px 30px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(58,30,10,0.35);
+}
+#float-save-btn:active { transform: scale(0.96); }
+#float-save-message {
+  position: absolute; right: 20px; bottom: 78px; max-width: calc(100% - 40px);
+  background: var(--text); color: #fff; padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; pointer-events: none; text-align: right;
+}
+#float-save-message.error { background: var(--pink); color: #3a0417; }
 
 /* ---------- ベット ---------- */
 #bet-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -346,8 +355,8 @@ td, th { padding: 6px; }
       <!-- タブ -->
       <div class="tabs">
         <button class="tab-btn active" data-tab="predict">予想</button>
-        <button class="tab-btn" data-tab="trend">トレンド</button>
-        <button class="tab-btn" data-tab="ranking">ランキング</button>
+        <button class="tab-btn" data-tab="trend">流行</button>
+        <button class="tab-btn hidden" data-tab="ranking">結果</button>
         <button class="tab-btn hidden" data-tab="admin" id="admin-tab-btn">管理</button>
       </div>
 
@@ -361,33 +370,28 @@ td, th { padding: 6px; }
             <h2 style="margin:0;">プロデューサー名刺</h2>
             <button class="help-btn" data-help="user-settings">？</button>
           </div>
-          <div class="user-settings-row">
-            <div>
-              <div class="stat-label" style="margin-bottom:4px;">プロデューサー名</div>
-              <input id="username-input" type="text" maxlength="10" placeholder="表示名(10字まで)">
-            </div>
-            <div>
-              <div class="stat-label" style="margin-bottom:4px;">ひとこと</div>
-              <input id="comment-input" type="text" maxlength="20" placeholder="意気込みなど(20字まで)">
-            </div>
-            <div>
-              <div class="stat-label" style="margin-bottom:4px;">担当アイドル</div>
-              <select id="idol-select"></select>
-            </div>
+          <div>
+            <div class="stat-label" style="margin-bottom:4px;">プロデューサー名</div>
+            <input id="username-input" type="text" maxlength="10" placeholder="表示名(10字まで)">
+          </div>
+          <div style="margin-top:14px;">
+            <div class="stat-label" style="margin-bottom:4px;">ひとこと</div>
+            <input id="comment-input" type="text" maxlength="20" placeholder="意気込みなど(20字まで)" style="width:100%;">
           </div>
           <p class="note-text" style="margin-top:8px; color:var(--pink);">⚠️ 個人情報、誹謗中傷、ほかの人を不快にさせる言葉は書かないでください。</p>
+          <div style="margin-top:14px;">
+            <div class="stat-label" style="margin-bottom:4px;">担当アイドル</div>
+            <select id="idol-select"></select>
+          </div>
+          <p class="note-text" style="margin-top:8px;">💡 ビンゴラインに担当アイドルの歌唱曲があるとスコア2倍!</p>
           <div id="idol-message-bubble" class="speech-bubble hidden">
             <div id="idol-message"></div>
-          </div>
-          <div class="flex-gap" style="margin-top:16px;">
-            <button id="save-btn-user" class="btn-gold btn-sm">保存する</button>
-            <span id="save-status-user" class="ok-text hidden"></span>
           </div>
         </div>
 
         <!-- 正解登録後に表示 -->
         <div id="after-setlist-section" class="hidden">
-          <div class="card">
+          <div id="after-setlist-header-card" class="card">
             <div class="flex-gap" style="justify-content:space-between;">
               <h2 style="margin:0;">正解セトリが登録されました</h2>
               <div class="flex-gap" style="gap:8px;">
@@ -403,9 +407,9 @@ td, th { padding: 6px; }
         <!-- セットリストビンゴ -->
         <div class="card">
           <div class="section-header">
-            <h2 style="margin:0;">セトリ予想ビンゴ</h2>
-            <div class="flex-gap" style="gap:8px;">
-              <button id="board-random-btn" class="btn-ghost btn-sm">おまかせで埋める</button>
+            <h2 style="margin:0;">セトリ予想</h2>
+            <div id="board-controls" class="flex-gap" style="gap:8px;">
+              <button id="board-random-btn" class="btn-ghost btn-sm">おまかせ</button>
               <button class="help-btn" data-help="board">？</button>
             </div>
           </div>
@@ -415,22 +419,18 @@ td, th { padding: 6px; }
           </div>
           <div id="board"></div>
           <p id="board-glow-note" class="note-text hidden">✨ 光っているラインはBINGO成立!</p>
-          <div class="flex-gap" style="margin-top:16px;">
-            <button id="save-btn-board" class="btn-gold btn-sm">保存する</button>
-            <span id="save-status-board" class="ok-text hidden"></span>
-          </div>
         </div>
 
         <!-- ベット -->
         <div class="card">
           <div class="section-header">
             <h2 style="margin:0;">夢に賭ける</h2>
-            <div class="flex-gap" style="gap:8px;">
-              <button id="bet-random-btn" class="btn-ghost btn-sm">おまかせで配分</button>
+            <div id="bet-controls" class="flex-gap" style="gap:8px;">
+              <button id="bet-random-btn" class="btn-ghost btn-sm">おまかせ</button>
               <button class="help-btn" data-help="bet">？</button>
             </div>
           </div>
-          <div class="stat-row" style="margin-bottom:16px;">
+          <div id="bet-stat-row" class="stat-row" style="margin-bottom:16px;">
             <div>
               <div class="stat-label">現在のジュエル</div>
               <div id="points-value" class="stat-value mono-font">12000</div>
@@ -444,22 +444,14 @@ td, th { padding: 6px; }
           </div>
           <div id="bet-grid"></div>
           <p id="bet-glow-note" class="note-text hidden" style="margin-top:10px;">✨ 光っている枠はBINGO成立ライン!</p>
-
-          <div class="flex-gap" style="margin-top:16px;">
-            <button id="save-btn-bet" class="btn-gold btn-sm">保存する</button>
-            <span id="save-status-bet" class="ok-text hidden"></span>
-          </div>
         </div>
 
-        <!-- 確定 -->
-        <div class="card">
-          <div id="confirm-error" class="error-text hidden"></div>
-          <div class="flex-gap" style="margin-bottom:14px;">
-            <button id="confirm-btn" class="btn-primary">確定する</button>
+        <!-- 締切後の案内(締切前は非表示) -->
+        <div id="postlock-card" class="card hidden">
+          <div class="flex-gap" style="margin-bottom:10px;">
             <button id="rescore-btn" class="btn-ghost btn-sm">再採点する</button>
           </div>
-          <div id="confirm-note" class="note-text" style="margin-bottom:8px;"></div>
-          <div id="confirm-message" style="font-size:13px; color:var(--gold); font-style:italic;"></div>
+          <div id="postlock-note" class="note-text"></div>
         </div>
 
         <!-- SNS共有 -->
@@ -480,7 +472,7 @@ td, th { padding: 6px; }
             </div>
             <p id="share-post-note" class="note-text" style="margin-top:6px;"></p>
           </div>
-          <canvas id="share-canvas" width="1280" height="675" class="hidden"></canvas>
+          <canvas id="share-canvas" width="1080" height="1620" class="hidden"></canvas>
         </div>
       </div>
 
@@ -488,7 +480,7 @@ td, th { padding: 6px; }
       <div id="tab-trend" class="hidden">
         <div class="card">
           <div class="section-header">
-            <h2 style="margin:0;">トレンド(みんなの予想傾向)</h2>
+            <h2 style="margin:0;">流行(みんなの予想傾向)</h2>
             <div class="flex-gap" style="gap:8px;">
               <button id="trend-refresh-btn" class="btn-ghost btn-sm">更新</button>
               <button class="help-btn" data-help="trend">？</button>
@@ -504,7 +496,7 @@ td, th { padding: 6px; }
       <div id="tab-ranking" class="hidden">
         <div class="card">
           <div class="flex-gap" style="justify-content:space-between;">
-            <h2>ランキング</h2>
+            <h2>結果</h2>
             <div class="flex-gap" style="gap:8px;">
               <button id="ranking-refresh-btn" class="btn-ghost btn-sm">更新</button>
               <button class="help-btn" data-help="ranking">？</button>
@@ -521,7 +513,8 @@ td, th { padding: 6px; }
             <h2 style="margin:0;">大会の管理</h2>
             <button class="help-btn" data-help="admin">？</button>
           </div>
-          <p class="lede">この大会の正解セトリ(曲目・担当アイドル)をCSVで登録する。1行目が1曲目、最終行がラスト曲(ENCORE)として判定されるので、実際に演奏された順に上から並べること(曲数は24曲固定でなくてよい)。</p>
+          <p class="lede">この大会の正解セトリ(曲目・担当アイドル)をCSVで登録する。1行目が1曲目、最終行がラスト曲(ENCORE)として判定されるので、実際に演奏された順に上から並べること(曲数は24曲固定でなくてよい)。<b>間違った内容を登録してしまった場合も、正しい内容を貼り付けて再登録すれば上書きできる</b>(自動で確定済み参加者の再採点も行われる)。</p>
+          <div id="setlist-status-line" class="note-text" style="margin-bottom:8px;"></div>
           <p class="note-text">CSV形式: 1行1曲、「曲名,歌唱者(声優/CV名)」。最初のカンマだけで区切るので、歌唱者が複数いる場合はそのままカンマ区切りでOK(例: SUPREMACY,長月あおい, 小鹿なお, 飯田ヒカル)。「ユニット名(メンバー1, メンバー2)」形式や「全員」(登録済み声優全員)にも対応。ヘッダー行はあってもなくてもよい。</p>
           <p class="note-text">1曲目とラスト曲だけ曲順まで判定され、それ以外のマスは「セトリ全体のどこかに入っていれば的中」として判定される。</p>
 
@@ -568,6 +561,23 @@ td, th { padding: 6px; }
     </div>
   </div>
 
+  <footer class="wrap app-footer">
+    <p>
+      <a href="https://imas-db.jp/" target="_blank" rel="noopener">アイマスDB</a>さま<br>
+      <a href="https://imas-db.jp/" target="_blank" rel="noopener">https://imas-db.jp/</a>
+    </p>
+    <p>
+      アイマス楽曲DB ふじわらはじめさま<br>
+      <a href="https://fujiwarahaji.me/sitemap/musiclist" target="_blank" rel="noopener">https://fujiwarahaji.me/sitemap/musiclist</a>
+    </p>
+    <p>
+      楽曲・セットリストデータ登録の参照にさせていただきました。<br>
+      ゲームの仕様に合わせてデータは一部、改変を行なっています。<br>
+      誤りがあった場合、上記のみなさまの責任ではありません。
+    </p>
+    <p>このアプリは、アイドルマスター、および、バンダイナムコ社とは無関係の、非公式アプリです。</p>
+  </footer>
+
   <!-- ===== ヘルプモーダル ===== -->
   <div id="help-modal-backdrop" class="hidden"></div>
   <div id="help-modal" class="hidden">
@@ -597,6 +607,12 @@ td, th { padding: 6px; }
     </div>
     <input id="song-picker-search" type="text" placeholder="曲名を検索…" autocomplete="off">
     <div id="song-picker-list" class="picker-list"></div>
+  </div>
+
+  <!-- ===== フロート保存ボタン ===== -->
+  <div id="float-save-wrap" class="hidden">
+    <div id="float-save-message" class="hidden"></div>
+    <button id="float-save-btn">保存する</button>
   </div>
 
   <script type="module">
@@ -634,14 +650,16 @@ const BET_GROUPS = [
   { id: "group4", label: "レギュラー", mult: 4, lineIds: ["row2", "col2", "diag2"] },
 ];
 
-const INITIAL_POINTS = 12000;
+const INITIAL_POINTS = 12300;
 const DEFAULT_GROUP_BET = 3000; // 各グループ(マスター/プロ/レギュラー)の初期ベット総額
 
 function makeDefaultBets() {
   const b = {};
   BET_GROUPS.forEach((group) => {
-    const perLine = DEFAULT_GROUP_BET / group.lineIds.length;
-    group.lineIds.forEach((lineId) => { b[lineId] = perLine; });
+    const count = group.lineIds.length;
+    const base = Math.floor(DEFAULT_GROUP_BET / count);
+    const remainder = DEFAULT_GROUP_BET - base * count;
+    group.lineIds.forEach((lineId, i) => { b[lineId] = base + (i < remainder ? 1 : 0); });
   });
   return b;
 }
@@ -704,7 +722,7 @@ const HELP_TEXTS = {
     body: "大会終了後、管理者が正解セトリを登録すると、ここに正解の一覧(モーダル)と、あなたの予想の採点結果(合計ジュエル・ライン別の内訳)が自動的に表示されます。「確定する」を押していない予想は採点されません。",
   },
   board: {
-    title: "セトリ予想ビンゴについて",
+    title: "セトリ予想について",
     body: "3×3マスに「この曲が来そう」という予想を入れます。左上(OPENING)は1曲目、右下(ENCORE)はラスト曲専用で、曲順まで当てる必要があります。それ以外のマスは、セトリ全体のどこかに入っていれば的中(曲順・前半後半は問いません)。正解登録後は、BINGO成立したラインのマスが光ります。",
   },
   bet: {
@@ -712,15 +730,15 @@ const HELP_TEXTS = {
     body: "8ライン個別にベットする代わりに、倍率でグループ化した3択でシンプルにベットできます: 「765倍の列」(斜め↘の1本、OPENING・ENCORE両方必須で滅多に当たらない代わりに大化けする枠)、「8倍の列」(横1・横3・縦1・縦3の4本まとめて)、「4倍の列」(横2・縦2・斜め↙の3本まとめて)。グループに入力した金額は、そのグループ内のライン数で自動的に均等分割される。合計がジュエル残高とぴったり同じになる必要があります。1ラインの3マス全部が的中(BINGO)すると、そのラインぶんのベットが倍率に応じて返ってきます。担当アイドルの曲がBINGOラインに含まれていると、マス1つにつきさらに2倍。正解登録後は、BINGO成立したラインの枠が光ります。",
   },
   trend: {
-    title: "トレンドについて",
-    body: "確定済みの参加者全員の予想を集計した「みんなの予想傾向」です。1曲目(OPENING)予想・ラスト曲(ENCORE)予想・全体で人気の曲を、それぞれ得票数の多い順に表示します。個人の予想内容(誰がどのマスに何を入れたか)は分からない、集計値のみの表示です。通常は数時間おきに自動更新され、大会の管理者は「今すぐ集計する」でその場で更新できます。",
+    title: "流行について",
+    body: "確定済みの参加者全員の予想を集計した「みんなの予想傾向」です。担当アイドル人気ベスト3・1曲目(OPENING)予想・ラスト曲(ENCORE)予想・全体で人気の曲を、それぞれ得票数の多い順に表示します。個人の予想内容(誰がどのマスに何を入れたか)は分からない、集計値のみの表示です。通常は数時間おきに自動更新され、大会の管理者は「今すぐ集計する」でその場で更新できます。",
   },
   sns: {
     title: "SNS共有について",
     body: "セトリ予想ビンゴの図とベット状況を1枚の画像(JPG)にして生成する。「画像を保存」で端末に保存、「Xに投稿」を押すと、対応する端末(主にスマホ)ではOS標準の共有シートからXへ画像とコメントをまとめて渡せる。対応していない環境では、画像を自動保存したうえでXの投稿画面をコメント付きで開くので、その画面に画像を手動で添付してほしい。9マス全部を埋めてから生成できる。",
   },
   ranking: {
-    title: "ランキングについて",
+    title: "結果について",
     body: "正解セトリ登録前(結果発表前)は、「確定」した参加者をプロデューサー名・担当アイドル・ひとことだけ、確定した順に表示します。正解セトリ登録後は、獲得ジュエルの多い順(同点はBINGO本数順)に切り替わり、ジュエル数とガシャ換算(ジュエル数÷300連)も表示されます。他の参加者の予想内容(マスの中身)自体は見えません。",
   },
   admin: {
@@ -877,6 +895,7 @@ function resetAppStateOnLogout() {
   isAdminOfEvent = false;
   isLocked = false;
   confirmed = false;
+  document.querySelector('.tab-btn[data-tab="ranking"]').classList.add("hidden");
 
   board = Array(BOARD_SIZE).fill(null);
   bets = makeDefaultBets();
@@ -1019,8 +1038,10 @@ async function loadEventSetlist() {
     .select("*")
     .eq("event_id", selectedEvent.id)
     .order("position", { ascending: true });
-  if (error) { console.error(error); eventSetlist = null; return; }
-  eventSetlist = (data && data.length > 0) ? data : null;
+  if (error) { console.error(error); eventSetlist = null; }
+  else { eventSetlist = (data && data.length > 0) ? data : null; }
+  const setlistReady = !!eventSetlist;
+  document.querySelector('.tab-btn[data-tab="ranking"]').classList.toggle("hidden", !setlistReady);
 }
 
 // ================= 保存/読込(予想データ) =================
@@ -1055,30 +1076,11 @@ async function loadGameSave() {
   result = null;
 }
 
-async function saveGame(statusElId) {
-  const status = document.getElementById(statusElId || "save-status-bet");
-  const { error } = await supabase.from("game_saves").upsert({
-    event_id: selectedEvent.id,
-    user_id: currentUser.id,
-    board, bets, points,
-    selected_idol: selectedIdol,
-    selected_idol_cv: selectedIdolCv,
-    comment,
-    username,
-    updated_at: new Date().toISOString(),
-  });
-  if (error) {
-    status.textContent = "保存に失敗しました: " + error.message;
-    status.classList.remove("hidden");
-    return;
-  }
-  status.textContent = "✓ 保存しました";
-  status.classList.remove("hidden");
-  setTimeout(() => status.classList.add("hidden"), 2000);
-}
 
 // ================= タブ切り替え =================
+let currentTab = "predict";
 function switchTab(tab) {
+  currentTab = tab;
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   document.getElementById("tab-predict").classList.toggle("hidden", tab !== "predict");
   document.getElementById("tab-trend").classList.toggle("hidden", tab !== "trend");
@@ -1094,6 +1096,12 @@ function switchTab(tab) {
     updateConfirmState();
     tryAutoScore();
   }
+  updateFloatSaveVisibility();
+}
+
+function updateFloatSaveVisibility() {
+  const wrap = document.getElementById("float-save-wrap");
+  wrap.classList.toggle("hidden", currentTab !== "predict" || isLocked);
 }
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -1232,15 +1240,11 @@ function applyViewportFix(modalEl) {
   if (!window.visualViewport) return () => {};
   const vv = window.visualViewport;
   const update = () => {
-    if (window.innerWidth <= 700) {
-      // キーボード表示分だけ視覚的なビューポートが縮むので、その範囲に収まるよう
-      // モーダルの下端・最大高さを都度合わせる(キーボードに候補リストが隠れる対策)
-      const bottomOffset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-      modalEl.style.bottom = bottomOffset + "px";
-      modalEl.style.maxHeight = (vv.height * 0.9) + "px";
-    } else {
-      modalEl.style.maxHeight = (vv.height * 0.78) + "px";
-    }
+    // キーボード表示分だけ視覚的なビューポートが縮むので、その範囲に収まるよう
+    // モーダルの下端・最大高さを都度合わせる(キーボードに候補リストが隠れる対策)
+    const bottomOffset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    modalEl.style.bottom = bottomOffset + "px";
+    modalEl.style.maxHeight = (vv.height * 0.9) + "px";
   };
   vv.addEventListener("resize", update);
   vv.addEventListener("scroll", update);
@@ -1359,8 +1363,13 @@ function groupTotal(group) {
 }
 
 function setGroupTotal(group, total) {
-  const perLine = total / group.lineIds.length;
-  group.lineIds.forEach((lineId) => { bets[lineId] = perLine; });
+  const count = group.lineIds.length;
+  const rounded = Math.round(total);
+  const base = Math.floor(rounded / count);
+  const remainder = rounded - base * count; // 0〜count-1の整数
+  group.lineIds.forEach((lineId, i) => {
+    bets[lineId] = base + (i < remainder ? 1 : 0);
+  });
 }
 
 function groupCellSet(group) {
@@ -1453,7 +1462,7 @@ function updatePointsAndBetTotal() {
   const totalEl = document.getElementById("bet-total-value");
   totalEl.textContent = total.toLocaleString() + " ジュエル";
   const statusEl = document.getElementById("bet-status");
-  const diff = points - total;
+  const diff = Math.round(points - total); // 浮動小数点の誤差を丸めて無視する
   totalEl.style.color = diff === 0 ? "var(--teal)" : "var(--pink)";
   statusEl.style.color = diff === 0 ? "var(--teal)" : "var(--pink)";
   statusEl.textContent = diff === 0 ? "✓ 配分OK" : diff > 0 ? `残り ${diff.toLocaleString()}ジュエル 未配分` : `${(-diff).toLocaleString()}ジュエル 超過`;
@@ -1493,36 +1502,35 @@ document.getElementById("setlist-modal-close").addEventListener("click", closeSe
 document.getElementById("setlist-modal-backdrop").addEventListener("click", closeSetlistModal);
 
 function updateConfirmState() {
-  const btn = document.getElementById("confirm-btn");
-  const note = document.getElementById("confirm-note");
-  const saveBtns = [
-    document.getElementById("save-btn-user"),
-    document.getElementById("save-btn-board"),
-    document.getElementById("save-btn-bet"),
-  ];
+  const postlockCard = document.getElementById("postlock-card");
+  const postlockNote = document.getElementById("postlock-note");
   const rescoreBtn = document.getElementById("rescore-btn");
-  const msgEl = document.getElementById("confirm-message");
   const setlistReady = eventSetlist && eventSetlist.length > 0;
 
-  if (isLocked) {
-    btn.classList.add("hidden");
-    saveBtns.forEach((b) => b.classList.add("hidden"));
-    rescoreBtn.classList.toggle("hidden", !setlistReady);
-    note.textContent = setlistReady
-      ? ""
-      : "確定済みです。ライブ後、管理者が正解セトリを登録すると自動的に採点され、ランキングに反映されます。";
-    if (SHOW_IDOL_MESSAGES && !msgEl.textContent) msgEl.textContent = pickMessage(CONFIRM_MESSAGES, selectedIdol);
-  } else {
-    btn.classList.remove("hidden");
-    btn.disabled = false;
-    btn.textContent = confirmed ? "再確定する" : "確定する";
-    saveBtns.forEach((b) => b.classList.remove("hidden"));
+  if (isLocked && !setlistReady) {
+    postlockCard.classList.remove("hidden");
     rescoreBtn.classList.add("hidden");
-    note.textContent = confirmed
-      ? "確定済みです。締切までは、トレンドを見ながら何度でも調整・再確定できます。"
-      : "予想がまとまったらいつでも「確定する」を押せます(締切前でもOK)。締切を迎えると自動的に確定扱いになります。";
-    msgEl.textContent = "";
+    postlockNote.textContent = "締切済みです。ライブ後、管理者が正解セトリを登録すると自動的に採点され、結果に反映されます。";
+  } else {
+    postlockCard.classList.add("hidden");
   }
+  applyFinalResultsView();
+  updateFloatSaveVisibility();
+}
+
+// 結果確定後(締切済み かつ 正解セトリ登録済み)は、予想タブを
+// 「プロデューサー名刺・ビンゴ・列のベット・スコア・SNS共有」のみのシンプル表示にする
+function applyFinalResultsView() {
+  const setlistReady = eventSetlist && eventSetlist.length > 0;
+  const showFinal = isLocked && setlistReady;
+
+  document.getElementById("deadline-banner").classList.toggle("hidden", showFinal);
+  document.getElementById("after-setlist-header-card").classList.toggle("hidden", showFinal);
+  document.getElementById("board-controls").classList.toggle("hidden", showFinal);
+  const legendEl = document.querySelector("#tab-predict .legend");
+  if (legendEl) legendEl.classList.toggle("hidden", showFinal);
+  document.getElementById("bet-controls").classList.toggle("hidden", showFinal);
+  document.getElementById("bet-stat-row").classList.toggle("hidden", showFinal);
 }
 
 function computeScoreCore(boardArg, betsArg, idolCvArg, songs, members) {
@@ -1644,21 +1652,26 @@ async function tryAutoScore() {
 }
 
 // ================= 確定(予想のロック。採点は正解セトリ登録後に自動で行われる) =================
-document.getElementById("confirm-btn").addEventListener("click", async () => {
-  const errorEl = document.getElementById("confirm-error");
-  errorEl.classList.add("hidden");
+document.getElementById("float-save-btn").addEventListener("click", async () => {
+  const msgEl = document.getElementById("float-save-message");
+  msgEl.classList.remove("error");
 
   const totalBet = Object.values(bets).reduce((s, v) => s + (Number(v) || 0), 0);
   const filledCount = board.filter(Boolean).length;
 
-  if (totalBet !== points) {
-    errorEl.textContent = `ベット合計が現在のジュエル(${points.toLocaleString()}ジュエル)と一致していません(現在 ${totalBet.toLocaleString()}ジュエル)。`;
-    errorEl.classList.remove("hidden");
+  if (!username.trim()) {
+    msgEl.textContent = "プロデューサー名を入力してください。";
+    msgEl.classList.add("error"); msgEl.classList.remove("hidden");
     return;
   }
   if (filledCount < BOARD_SIZE) {
-    errorEl.textContent = "すべてのマスに曲を入力してください。";
-    errorEl.classList.remove("hidden");
+    msgEl.textContent = "すべてのマスに曲を入力してください。";
+    msgEl.classList.add("error"); msgEl.classList.remove("hidden");
+    return;
+  }
+  if (Math.round(totalBet - points) !== 0) {
+    msgEl.textContent = `ベット合計が現在のジュエル(${points.toLocaleString()})と一致していません(現在 ${totalBet.toLocaleString()})。`;
+    msgEl.classList.add("error"); msgEl.classList.remove("hidden");
     return;
   }
 
@@ -1672,16 +1685,13 @@ document.getElementById("confirm-btn").addEventListener("click", async () => {
   renderDeadlineBanner();
   setInputsDisabled(isLocked);
   updateConfirmState();
-  document.getElementById("confirm-message").textContent = SHOW_IDOL_MESSAGES ? pickMessage(CONFIRM_MESSAGES, selectedIdol) : "";
+  msgEl.textContent = "✓ 保存しました";
+  msgEl.classList.remove("hidden");
+  setTimeout(() => msgEl.classList.add("hidden"), 2200);
   tryAutoScore();
 });
 
 document.getElementById("rescore-btn").addEventListener("click", tryAutoScore);
-
-
-document.getElementById("save-btn-user").addEventListener("click", () => saveGame("save-status-user"));
-document.getElementById("save-btn-board").addEventListener("click", () => saveGame("save-status-board"));
-document.getElementById("save-btn-bet").addEventListener("click", () => saveGame("save-status-bet"));
 
 function renderResult() {
   const box = document.getElementById("result-box");
@@ -1792,6 +1802,24 @@ function shareTextTemplate() {
   return `${selectedEvent.name}、わたしのセトリ予想！\n${currentShareUrl()}`;
 }
 
+function drawMiniBoardIcon(ctx, x, y, size, cellSet) {
+  const gap = size * 0.06;
+  const cell = (size - gap * 2) / 3;
+  for (let i = 0; i < BOARD_SIZE; i++) {
+    const row = Math.floor(i / 3), col = i % 3;
+    const cx = x + col * (cell + gap);
+    const cy = y + row * (cell + gap);
+    const isSpecial = i === OPENING_IDX || i === ENCORE_IDX;
+    ctx.fillStyle = cellSet.has(i) ? "#e8791e" : "#f3e4cb";
+    ctx.fillRect(cx, cy, cell, cell);
+    if (isSpecial) {
+      ctx.strokeStyle = "#ff5c8a";
+      ctx.lineWidth = Math.max(1.5, size * 0.02);
+      ctx.strokeRect(cx, cy, cell, cell);
+    }
+  }
+}
+
 async function generateShareImage() {
   const errEl = document.getElementById("share-error");
   errEl.classList.add("hidden");
@@ -1804,7 +1832,7 @@ async function generateShareImage() {
   if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch {} }
 
   const canvas = document.getElementById("share-canvas");
-  canvas.width = 1280; canvas.height = 675;
+  canvas.width = 1080; canvas.height = 1620;
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
 
@@ -1815,127 +1843,75 @@ async function generateShareImage() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
+  // ---- タイトル・大会名 ----
   ctx.textBaseline = "top";
-  ctx.textAlign = "left";
+  ctx.textAlign = "center";
   ctx.fillStyle = "#ffffff";
-  ctx.font = "40px 'Bebas Neue', sans-serif";
-  ctx.fillText("セトリ予想ビンゴ", 30, 14);
-  ctx.font = "600 16px 'Inter', sans-serif";
-  ctx.fillText(selectedEvent.name, 32, 58);
+  ctx.font = "64px 'Bebas Neue', sans-serif";
+  ctx.fillText("セトリ予想ビンゴ", W / 2, 50);
+  ctx.font = "600 26px 'Inter', sans-serif";
+  ctx.fillText(selectedEvent.name, W / 2, 130);
 
-  // ---- 3カラムのレイアウト計算 ----
-  const margin = 20, gap = 15;
-  const panelY = 90, panelH = H - panelY - 20;
-  const leftW = 350, rightW = 350;
-  const centerW = (W - margin * 2) - leftW - rightW - gap * 2;
-  const leftX = margin;
-  const centerX = leftX + leftW + gap;
-  const rightX = centerX + centerW + gap;
-
-  // ==================== 左: ベット状況 ====================
-  drawRoundedRect(ctx, leftX, panelY, leftW, panelH, 14, "#fbf3e4");
-  ctx.fillStyle = "#2b2119";
-  ctx.font = "26px 'Bebas Neue', sans-serif";
-  ctx.fillText("ベット状況", leftX + 18, panelY + 12);
-
-  ctx.font = "700 13px 'Inter', sans-serif";
-  ctx.fillStyle = "#e8791e";
-  const idolLabel = selectedIdol ? (selectedIdolCv ? `${selectedIdol}(C.V.${selectedIdolCv})` : selectedIdol) : "未選択";
-  wrapTextLeft(ctx, `担当: ${idolLabel}`, leftX + 18, panelY + 44, leftW - 36, 16, 2);
-
-  const totalBet = Object.values(bets).reduce((s, v) => s + (Number(v) || 0), 0);
-  ctx.font = "600 12px 'Inter', sans-serif";
-  ctx.fillStyle = "#9c8b76";
-  ctx.fillText(`現在 ${points.toLocaleString()} / ベット合計 ${totalBet.toLocaleString()}`, leftX + 18, panelY + 82);
-
-  const bingoLineIdSet = new Set(result ? result.lineResults.filter((l) => l.status === "BINGO").map((l) => l.id) : []);
-  let ly = panelY + 112;
-  const rowH = (panelH - 122) / BET_GROUPS.length;
-  BET_GROUPS.forEach((group) => {
-    const isGroupBingo = group.lineIds.some((id) => bingoLineIdSet.has(id));
-    ctx.textAlign = "left";
-    ctx.font = "600 13px 'Inter', sans-serif";
-    ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
-    ctx.fillText(group.label, leftX + 18, ly);
-    ctx.font = "700 10px 'JetBrains Mono', monospace";
-    ctx.fillStyle = "#e8791e";
-    ctx.fillText(`×${group.mult}`, leftX + 18, ly + 20);
-    ctx.textAlign = "right";
-    ctx.font = "700 15px 'JetBrains Mono', monospace";
-    ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
-    ctx.fillText(`${groupTotal(group).toLocaleString()}`, leftX + leftW - 18, ly);
-    ly += rowH;
-  });
-
-  // ==================== 中央: ビンゴカード ====================
-  drawRoundedRect(ctx, centerX, panelY, centerW, centerW, 14, "#fbf3e4");
-  const pad = 12, cellGap = 6;
-  const cellSize = (centerW - pad * 2 - cellGap * 2) / 3;
+  // ---- ビンゴ盤 ----
+  const boardSize = 900;
+  const boardX = (W - boardSize) / 2;
+  const boardY = 190;
+  drawRoundedRect(ctx, boardX, boardY, boardSize, boardSize, 20, "#fbf3e4");
+  const pad = 20, cellGap = 10;
+  const cellSize = (boardSize - pad * 2 - cellGap * 2) / 3;
   for (let i = 0; i < BOARD_SIZE; i++) {
     const row = Math.floor(i / 3), col = i % 3;
-    const x = centerX + pad + col * (cellSize + cellGap);
-    const y = panelY + pad + row * (cellSize + cellGap);
+    const x = boardX + pad + col * (cellSize + cellGap);
+    const y = boardY + pad + row * (cellSize + cellGap);
     const isOpening = i === OPENING_IDX, isEncore = i === ENCORE_IDX;
     const special = isOpening || isEncore;
-    drawRoundedRect(ctx, x, y, cellSize, cellSize, 8, "#f3e4cb");
-    if (special) { ctx.strokeStyle = "#e8791e"; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2); }
+    drawRoundedRect(ctx, x, y, cellSize, cellSize, 12, "#f3e4cb");
+    if (special) { ctx.strokeStyle = "#e8791e"; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3); }
     if (special) {
       ctx.textAlign = "center";
-      ctx.font = "700 10px 'JetBrains Mono', monospace";
+      ctx.font = "700 15px 'JetBrains Mono', monospace";
       ctx.fillStyle = "#e8791e";
-      ctx.fillText(isOpening ? "OPENING" : "ENCORE", x + cellSize / 2, y + 6);
+      ctx.fillText(isOpening ? "OPENING" : "ENCORE", x + cellSize / 2, y + 10);
     }
-    ctx.font = "500 14px 'Inter', sans-serif";
+    ctx.font = "500 22px 'Inter', sans-serif";
     ctx.fillStyle = "#2b2119";
-    wrapTextCentered(ctx, board[i] || "", x + cellSize / 2, y + (special ? 30 : 16), cellSize - 14, 17, 3);
+    wrapTextCentered(ctx, board[i] || "", x + cellSize / 2, y + (special ? 42 : 20), cellSize - 20, 25, 3);
   }
   ctx.textAlign = "left";
 
-  // ==================== 右: 結果 ====================
-  drawRoundedRect(ctx, rightX, panelY, rightW, panelH, 14, "#fbf3e4");
-  ctx.fillStyle = "#2b2119";
-  ctx.font = "26px 'Bebas Neue', sans-serif";
-  ctx.fillText("結果", rightX + 18, panelY + 12);
+  // ---- ベット3行(マスター/プロ/レギュラー) ----
+  const betY = boardY + boardSize + 40;
+  const betRowH = 110, betGap = 16;
+  const betPanelX = boardX, betPanelW = boardSize;
+  const bingoLineIdSet = new Set(result ? result.lineResults.filter((l) => l.status === "BINGO").map((l) => l.id) : []);
 
-  if (!result) {
-    ctx.textAlign = "center";
-    ctx.font = "22px 'Bebas Neue', sans-serif";
-    ctx.fillStyle = "#9c8b76";
-    ctx.fillText("結果待ち", rightX + rightW / 2, panelY + panelH / 2 - 30);
-    ctx.font = "500 12px 'Inter', sans-serif";
-    wrapTextCentered(ctx, "正解セトリ発表後に自動で表示されます", rightX + rightW / 2, panelY + panelH / 2 + 6, rightW - 50, 18, 3);
+  BET_GROUPS.forEach((group, i) => {
+    const y = betY + i * (betRowH + betGap);
+    const isGroupBingo = group.lineIds.some((id) => bingoLineIdSet.has(id));
+    drawRoundedRect(ctx, betPanelX, y, betPanelW, betRowH, 16, "#fbf3e4");
+
+    const iconSize = 74;
+    drawMiniBoardIcon(ctx, betPanelX + 18, y + (betRowH - iconSize) / 2, iconSize, groupCellSet(group));
+
     ctx.textAlign = "left";
-  } else {
-    const tier = scoreTier(result.finalTotal);
-    ctx.font = "700 13px 'Inter', sans-serif";
-    ctx.fillStyle = "#9c8b76";
-    ctx.fillText("最終ジュエル", rightX + 18, panelY + 50);
-    ctx.font = "700 30px 'JetBrains Mono', monospace";
+    ctx.font = "32px 'Bebas Neue', sans-serif";
+    ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
+    ctx.fillText(group.label, betPanelX + 18 + iconSize + 16, y + 22);
+    ctx.font = "700 14px 'JetBrains Mono', monospace";
     ctx.fillStyle = "#e8791e";
-    ctx.fillText(result.finalTotal.toLocaleString(), rightX + 18, panelY + 68);
+    ctx.fillText(`[×${group.mult}]`, betPanelX + 18 + iconSize + 16, y + 60);
 
-    ctx.font = "700 14px 'Inter', sans-serif";
-    ctx.fillStyle = "#2b2119";
-    ctx.fillText(TIER_LABEL[tier], rightX + 18, panelY + 114);
-
-    ctx.font = "600 13px 'Inter', sans-serif";
-    ctx.fillStyle = "#2b2119";
-    ctx.fillText(`BINGO成立: ${result.bingoCount}本`, rightX + 18, panelY + 144);
-    ctx.fillText(`OPENING的中: ${result.openingHit ? "○" : "×"}　ENCORE的中: ${result.encoreHit ? "○" : "×"}`, rightX + 18, panelY + 166);
-
-    const bingoLabels = result.lineResults.filter((l) => l.status === "BINGO").map((l) => l.label);
-    ctx.font = "700 12px 'Inter', sans-serif";
-    ctx.fillStyle = "#9c8b76";
-    ctx.fillText("成立ライン", rightX + 18, panelY + 202);
-    ctx.font = "500 12px 'Inter', sans-serif";
-    ctx.fillStyle = "#2b2119";
-    wrapTextLeft(ctx, bingoLabels.length ? bingoLabels.join("・") : "なし", rightX + 18, panelY + 224, rightW - 36, 18, 8);
-  }
+    ctx.textAlign = "right";
+    ctx.font = "700 34px 'JetBrains Mono', monospace";
+    ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
+    ctx.fillText(groupTotal(group).toLocaleString(), betPanelX + betPanelW - 20, y + (betRowH - 34) / 2);
+  });
+  ctx.textAlign = "left";
 
   ctx.textAlign = "center";
-  ctx.font = "600 14px 'Inter', sans-serif";
+  ctx.font = "600 20px 'Inter', sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("#セトリ予想ビンゴ", W / 2, H - 26);
+  ctx.fillText("#セトリ予想ビンゴ", W / 2, H - 44);
   ctx.textAlign = "left";
 
   canvas.toBlob((blob) => {
@@ -2008,7 +1984,8 @@ async function renderTrendTab() {
   updatedEl.textContent = `最終集計: ${fmtDateTime(data.updated_at)}`;
 
   const t = data.trends_json;
-  function listBlock(title, items, emptyText) {
+  function listBlock(title, items, emptyText, field) {
+    field = field || "song_name";
     if (!items || items.length === 0) {
       return `<div style="margin-bottom:18px;"><h3 class="display-font" style="font-size:18px; margin:0 0 8px;">${title}</h3><p class="note-text">${emptyText}</p></div>`;
     }
@@ -2018,7 +1995,7 @@ async function renderTrendTab() {
       return `
         <div style="margin-bottom:8px;">
           <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:2px;">
-            <span>${escapeHtml(i.song_name)}</span>
+            <span>${escapeHtml(i[field])}</span>
             <span class="mono-font" style="color:var(--gold);">${i.votes}票</span>
           </div>
           <div style="background:var(--card-alt); border-radius:4px; height:6px; overflow:hidden;">
@@ -2030,6 +2007,7 @@ async function renderTrendTab() {
   }
 
   body.innerHTML =
+    listBlock("💛 担当アイドル人気ベスト3", t.popular_idols, "まだデータがありません", "idol_name") +
     listBlock("🎤 1曲目(OPENING)予想 人気トップ5", t.first_songs, "まだデータがありません") +
     listBlock("🎉 ラスト曲(ENCORE)予想 人気トップ5", t.last_songs, "まだデータがありません") +
     listBlock("🔥 全体で人気の曲 トップ10", t.popular_songs, "まだデータがありません");
@@ -2102,6 +2080,13 @@ function renderAdminTab() {
   document.getElementById("settle-status").classList.add("hidden");
   document.getElementById("trigger-trend-status").classList.add("hidden");
   document.getElementById("delete-event-error").classList.add("hidden");
+
+  const statusLine = document.getElementById("setlist-status-line");
+  if (eventSetlist && eventSetlist.length > 0) {
+    statusLine.innerHTML = `現在 <b>${eventSetlist.length}曲</b> 登録済み。再登録すると全て入れ替わります。`;
+  } else {
+    statusLine.textContent = "まだ正解セトリは登録されていません。";
+  }
 }
 
 document.getElementById("csv-file").addEventListener("change", (e) => {
@@ -2156,6 +2141,10 @@ document.getElementById("csv-submit-btn").addEventListener("click", async () => 
   const statusEl = document.getElementById("csv-status");
   errEl.classList.add("hidden"); statusEl.classList.add("hidden");
 
+  if (eventSetlist && eventSetlist.length > 0) {
+    if (!confirm(`既に${eventSetlist.length}曲の正解セトリが登録されています。この内容で上書きしますか？(確定済み参加者は自動的に再採点されます)`)) return;
+  }
+
   const { error: delError } = await supabase.from("event_setlists").delete().eq("event_id", selectedEvent.id);
   if (delError) { errEl.textContent = "登録に失敗しました: " + delError.message; errEl.classList.remove("hidden"); return; }
 
@@ -2168,6 +2157,7 @@ document.getElementById("csv-submit-btn").addEventListener("click", async () => 
   await loadEventSetlist();
   renderSetlistDisplay();
   updateConfirmState();
+  document.getElementById("setlist-status-line").innerHTML = `現在 <b>${eventSetlist.length}曲</b> 登録済み。再登録すると全て入れ替わります。`;
 
   const settleResult = await settleAllConfirmedUsers();
   if (settleResult.error) {
