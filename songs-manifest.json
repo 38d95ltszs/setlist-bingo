@@ -1,4 +1,4 @@
 [
-  { "id": "allbrand", "label": "全ブランド", "file": "songs-data.json" },
-  { "id": "gakumas", "label": "学園アイドルマスター", "file": "songs-data-gaku.json" }
+  { "id": "gakumas", "label": "学園アイドルマスター", "file": "songs-data-gaku.json" },
+  { "id": "allbrand", "label": "全ブランド", "file": "songs-data.json" }
 ]
