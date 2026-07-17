@@ -2,5 +2,5 @@
   { "id": "gakumas", "label": "学園アイドルマスター", "file": "casts-data.json" },
   { "id": "yakudou", "label": "DAY1 YAKUDOU", "file": "casts-data-yakudou.json" },
   { "id": "zesshou", "label": "DAY2 ZESSHOU", "file": "casts-data-zesshou.json" },
-  { "id": "kyoumei", "label": "DAY3 KYOUMEI", "file": "casts-data-yakudou.json" }
+  { "id": "kyoumei", "label": "DAY3 KYOUMEI", "file": "casts-data-kyoumei.json" }
 ]
