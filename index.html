@@ -1992,14 +1992,20 @@ async function generateShareImage() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // ---- タイトル・大会名 ----
+  // ---- タイトル・大会名(フォントサイズを入れ替え、大会名を大きく) ----
   ctx.textBaseline = "top";
   ctx.textAlign = "center";
   ctx.fillStyle = "#ffffff";
-  ctx.font = "64px 'Bebas Neue', sans-serif";
-  ctx.fillText("セトリ予想ビンゴ", W / 2, 50);
-  ctx.font = "600 26px 'Inter', sans-serif";
-  ctx.fillText(selectedEvent.name, W / 2, 130);
+  ctx.font = "26px 'Bebas Neue', sans-serif";
+  ctx.fillText("セトリ予想ビンゴ", W / 2, 20);
+
+  let eventNameSize = 64;
+  ctx.font = `600 ${eventNameSize}px 'Inter', sans-serif`;
+  while (ctx.measureText(selectedEvent.name).width > 1000 && eventNameSize > 24) {
+    eventNameSize -= 2;
+    ctx.font = `600 ${eventNameSize}px 'Inter', sans-serif`;
+  }
+  ctx.fillText(selectedEvent.name, W / 2, 55);
 
   const boardSize = 900;
   const boardX = (W - boardSize) / 2;
@@ -2051,7 +2057,7 @@ async function generateShareImage() {
   // ---- ベット3行(マスター/プロ/レギュラー) ----
   const betY = boardY + boardSize + 40;
   const betRowH = 110, betGap = 16;
-  const betPanelX = boardX, betPanelW = boardSize;
+  const betPanelX = boardX, betPanelW = Math.round(boardSize * 2 / 3);
   const bingoLineIdSet = new Set(result ? result.lineResults.filter((l) => l.status === "BINGO").map((l) => l.id) : []);
 
   BET_GROUPS.forEach((group, i) => {
@@ -2065,16 +2071,35 @@ async function generateShareImage() {
     ctx.textAlign = "left";
     ctx.font = "32px 'Bebas Neue', sans-serif";
     ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
-    ctx.fillText(group.label, betPanelX + 18 + iconSize + 16, y + 22);
-    ctx.font = "700 14px 'JetBrains Mono', monospace";
+    ctx.fillText(group.label, betPanelX + 18 + iconSize + 16, y + 14);
+    ctx.font = "700 32px 'JetBrains Mono', monospace";
     ctx.fillStyle = "#e8791e";
-    ctx.fillText(`[×${group.mult}]`, betPanelX + 18 + iconSize + 16, y + 60);
+    ctx.fillText(`×${group.mult}`, betPanelX + 18 + iconSize + 16, y + 54);
 
     ctx.textAlign = "right";
-    ctx.font = "700 34px 'JetBrains Mono', monospace";
+    ctx.font = "700 30px 'JetBrains Mono', monospace";
     ctx.fillStyle = isGroupBingo ? "#e8791e" : "#2b2119";
-    ctx.fillText(groupTotal(group).toLocaleString(), betPanelX + betPanelW - 20, y + (betRowH - 34) / 2);
+    ctx.fillText(groupTotal(group).toLocaleString(), betPanelX + betPanelW - 20, y + (betRowH - 30) / 2);
   });
+  ctx.textAlign = "left";
+
+  // ---- 空いた右側スペースに担当アイドルを表示 ----
+  const idolBoxX = betPanelX + betPanelW + betGap;
+  const idolBoxW = boardSize - betPanelW - betGap;
+  const idolBoxH = betRowH * 3 + betGap * 2;
+  drawRoundedRect(ctx, idolBoxX, betY, idolBoxW, idolBoxH, 16, "#fbf3e4");
+  ctx.textAlign = "center";
+  ctx.font = "700 15px 'Inter', sans-serif";
+  ctx.fillStyle = "#9c8b76";
+  ctx.fillText("担当アイドル", idolBoxX + idolBoxW / 2, betY + 20);
+  ctx.font = "26px 'Bebas Neue', sans-serif";
+  ctx.fillStyle = "#e8791e";
+  wrapTextCenteredBlock(ctx, selectedIdol || "未選択", idolBoxX + idolBoxW / 2, betY + 54, idolBoxH - 100, idolBoxW - 24, 30, 3);
+  if (selectedIdolCv) {
+    ctx.font = "500 14px 'Inter', sans-serif";
+    ctx.fillStyle = "#9c8b76";
+    wrapTextCenteredBlock(ctx, `C.V.${selectedIdolCv}`, idolBoxX + idolBoxW / 2, betY + idolBoxH - 40, 32, idolBoxW - 24, 17, 2);
+  }
   ctx.textAlign = "left";
 
   ctx.textAlign = "center";
