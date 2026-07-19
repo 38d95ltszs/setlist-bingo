@@ -305,7 +305,10 @@ td, th { padding: 6px; }
       <input id="auth-id" type="text" autocomplete="username" placeholder="例: gakuen">
 
       <label for="auth-password">パスワード</label>
-      <input id="auth-password" type="text" autocomplete="current-password" placeholder="8文字以上">
+      <div style="position:relative;">
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="8文字以上" style="width:100%; padding-right:60px;">
+        <button type="button" id="auth-password-toggle" class="btn-ghost btn-sm" style="position:absolute; right:4px; top:50%; transform:translateY(-50%);">表示</button>
+      </div>
 
       <div id="auth-error" class="error-text hidden"></div>
 
@@ -874,6 +877,12 @@ authToggleBtn.addEventListener("click", () => {
   authSubmitBtn.textContent = authMode === "login" ? "ログイン" : "新規登録";
   authToggleBtn.textContent = authMode === "login" ? "新規登録はこちら" : "ログインはこちら";
   authError.classList.add("hidden");
+});
+
+document.getElementById("auth-password-toggle").addEventListener("click", (e) => {
+  const showing = authPasswordInput.type === "text";
+  authPasswordInput.type = showing ? "password" : "text";
+  e.target.textContent = showing ? "表示" : "隠す";
 });
 
 authSubmitBtn.addEventListener("click", async () => {
