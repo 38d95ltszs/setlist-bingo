@@ -28,6 +28,7 @@ alter table public.events enable row level security;
 
 drop policy if exists "events select all" on public.events;
 drop policy if exists "events insert own" on public.events;
+drop policy if exists "events insert admin only" on public.events;
 drop policy if exists "events update own" on public.events;
 drop policy if exists "events delete own" on public.events;
 
@@ -36,12 +37,13 @@ create policy "events select all"
   on public.events for select
   using (auth.role() = 'authenticated');
 
--- 作成は自分がcreated_byになる形でのみ許可
--- (将来「誰でも大会を作れる」に開放する場合もこのポリシーのままでOK。
---  現状はアプリ側のUIで作成ボタンの表示を制限している)
-create policy "events insert own"
+-- 作成は管理者(SUPER_ADMIN_LOGIN_ID)のみ許可。
+-- index.html側の SUPER_ADMIN_LOGIN_ID / FAKE_EMAIL_DOMAIN を変更した場合は、
+-- 下の auth.email() 照合文字列も必ず一緒に変更すること。ここがズレると
+-- 「アプリ上はボタンが隠れているだけで、実際は誰でも大会を作成できてしまう」状態に戻る。
+create policy "events insert admin only"
   on public.events for insert
-  with check (auth.uid() = created_by);
+  with check (auth.email() = 'potchim@gakumas-bingo.local');
 
 -- 更新・削除はその大会の作成者(管理者)のみ
 create policy "events update own"
