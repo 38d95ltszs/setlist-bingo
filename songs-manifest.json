@@ -1,5 +1,5 @@
 [
-  { "id": "gakumas", "label": "学園アイドルマスター", "file": "songs-data-gaku.json" },
-  { "id": "shinycolors", "label": "シャイニーカラーズ", "file": "songs-data-sc.json" },
-  { "id": "allbrand", "label": "全ブランド", "file": "songs-data.json" }
+  { "id": "gakumas", "label": "学園アイドルマスター", "file": "songs/songs-data-gaku.json" },
+  { "id": "shinycolors", "label": "シャイニーカラーズ", "file": "songs/songs-data-sc.json" },
+  { "id": "allbrand", "label": "全ブランド", "file": "songs/songs-data.json" }
 ]

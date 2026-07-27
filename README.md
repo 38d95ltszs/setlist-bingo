@@ -52,27 +52,29 @@
 
 候補曲リストも担当アイドル一覧も、複数のJSONファイルを用意して**大会ごとにどれを使うか選べる**(大会作成時・管理タブどちらからも変更可能)。利用可能なファイルの一覧は、それぞれ `songs-manifest.json` / `casts-manifest.json` に登録する。
 
+候補曲・担当アイドルの実データファイルは、それぞれ `songs/` フォルダ・`casts/` フォルダの下に置く。マニフェスト(`songs-manifest.json` / `casts-manifest.json`)自体はリポジトリのRoot直下のまま。
+
 ```json
-// songs-data.json の例(候補曲リストの1つ)
+// songs/songs-data.json の例(候補曲リストの1つ)
 ["モーニング・プリズム", "リハーサル・トワイライト", "..."]
 
-// songs-manifest.json の例(利用可能な候補曲JSON一覧)
+// songs-manifest.json の例(利用可能な候補曲JSON一覧。fileはRootからの相対パス)
 [
-  { "id": "gakumas", "label": "学園アイドルマスター(テスト)", "file": "songs-data.json" },
-  { "id": "gaku", "label": "GAKU", "file": "songs-data-gaku.json" }
+  { "id": "gakumas", "label": "学園アイドルマスター(テスト)", "file": "songs/songs-data.json" },
+  { "id": "gaku", "label": "GAKU", "file": "songs/songs-data-gaku.json" }
 ]
 
-// casts-data.json の例(担当アイドル一覧の1つ。アイドル名+声優CV)
+// casts/casts-data.json の例(担当アイドル一覧の1つ。アイドル名+声優CV)
 [{"idol": "花海咲季", "cv": "石見舞菜香"}, {"idol": "月村手毬", "cv": "前田佳織里"}]
 
-// casts-manifest.json の例(利用可能な担当アイドルJSON一覧)
+// casts-manifest.json の例(利用可能な担当アイドルJSON一覧。fileはRootからの相対パス)
 [
-  { "id": "gakumas", "label": "学園アイドルマスター(テスト)", "file": "casts-data.json" },
-  { "id": "another", "label": "別のアイドルグループ", "file": "casts-data-2.json" }
+  { "id": "gakumas", "label": "学園アイドルマスター(テスト)", "file": "casts/casts-data.json" },
+  { "id": "another", "label": "別のアイドルグループ", "file": "casts/casts-data-2.json" }
 ]
 ```
 
-新しい候補曲リスト/担当アイドル一覧を追加したい場合は、①新しいJSONファイルをこのリポジトリに追加し、②対応するマニフェストにその情報(id/label/file)を追記してpushする。それだけで、大会作成時の選択肢・管理タブの選択肢に自動的に出てくる。
+新しい候補曲リスト/担当アイドル一覧を追加したい場合は、①新しいJSONファイルを`songs/`または`casts/`フォルダに追加し、②対応するマニフェストにその情報(id/label/file、fileは`songs/xxx.json`のようにフォルダ込みの相対パス)を追記してpushする。それだけで、大会作成時の選択肢・管理タブの選択肢に自動的に出てくる。
 
 正解セトリ(実際に演奏された曲+歌唱者)は、これとは別に大会ごとにCSVで管理タブから登録する。歌唱者は声優(CV)名で記録し、担当アイドル選択もCV名で照合する。CSV形式は「曲名,歌唱者」。最初のカンマだけで区切るので、歌唱者が複数いる場合はそのままカンマ区切りでOK(例: `SUPREMACY,長月あおい, 小鹿なお, 飯田ヒカル`)。「ユニット名(メンバー1, メンバー2)」形式や「全員」(登録済み声優全員として展開)にも対応。既に登録済みの内容がある場合は、上書き確認のダイアログが出る。
 
@@ -119,7 +121,7 @@ git push -u origin main
 
 Settings > Pages で Source を `Deploy from a branch` / ブランチ `main` / フォルダ `/(root)` にする。
 
-`index.html`は`songs-data.json`・`casts-data.json`などを相対パス(`./songs-data.json`など)で読み込むので、必ずリポジトリのRoot直下に全ファイルをまとめて置くこと。
+`index.html`はマニフェスト(`songs-manifest.json`・`casts-manifest.json`)をRoot直下から相対パス(`./songs-manifest.json`など)で読み込み、そこに書かれた`file`のパス(`songs/songs-data.json`など)でさらに実データを読み込む。実データファイルは`songs/`・`casts/`フォルダの下に置き、`index.html`・両マニフェスト・`README.md`・`banner.png`・`supabase-schema.sql`はRoot直下に置くこと。
 
 ## 大会の使い方
 
@@ -143,10 +145,10 @@ Settings > Pages で Source を `Deploy from a branch` / ブランチ `main` / �
 ```
 index.html                画面・見た目・ロジックすべてを含む単一ファイル
                            (★中盤のSupabase接続情報とSUPER_ADMIN_LOGIN_IDだけ書き換える)
-songs-data.json            候補曲リストの1つ。複数用意できる
-songs-manifest.json        利用可能な候補曲一覧JSONの目次(大会ごとにここから選ぶ)
-casts-data.json            担当アイドル一覧の1つ(アイドル名+声優CV)。複数用意できる
-casts-manifest.json        利用可能な担当アイドル一覧JSONの目次(大会ごとにここから選ぶ)
+songs-manifest.json        利用可能な候補曲一覧JSONの目次(大会ごとにここから選ぶ。fileはRootからの相対パス)
+songs/                     候補曲リストの実データを入れるフォルダ(songs-data.json など、複数用意できる)
+casts-manifest.json        利用可能な担当アイドル一覧JSONの目次(大会ごとにここから選ぶ。fileはRootからの相対パス)
+casts/                     担当アイドル一覧の実データを入れるフォルダ(casts-data.json など、複数用意できる)
 supabase-schema.sql        Supabaseに流し込むテーブル定義・RLS設定・トレンド集計関数
 ```
 

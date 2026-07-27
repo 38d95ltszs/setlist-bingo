@@ -1,7 +1,7 @@
 [
-  { "id": "gakumas", "label": "学園アイドルマスター", "file": "casts-data.json" },
-  { "id": "shinycolors", "label": "シャイニーカラーズ", "file": "casts-data-sc.json" },
-  { "id": "yakudou", "label": "DAY1 YAKUDOU", "file": "casts-data-yakudou.json" },
-  { "id": "zesshou", "label": "DAY2 ZESSHOU", "file": "casts-data-zesshou.json" },
-  { "id": "kyoumei", "label": "DAY3 KYOUMEI", "file": "casts-data-kyoumei.json" }
+  { "id": "gakumas", "label": "学園アイドルマスター", "file": "casts/casts-data.json" },
+  { "id": "shinycolors", "label": "シャイニーカラーズ", "file": "casts/casts-data-sc.json" },
+  { "id": "yakudou", "label": "DAY1 YAKUDOU", "file": "casts/casts-data-yakudou.json" },
+  { "id": "zesshou", "label": "DAY2 ZESSHOU", "file": "casts/casts-data-zesshou.json" },
+  { "id": "kyoumei", "label": "DAY3 KYOUMEI", "file": "casts/casts-data-kyoumei.json" }
 ]
