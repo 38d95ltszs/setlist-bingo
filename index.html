@@ -2039,20 +2039,45 @@ async function generateShareImage() {
   drawRoundedRect(ctx, boardX, boardY, boardSize, boardSize, 20, "#fbf3e4");
   const pad = 20, cellGap = 10;
   const cellSize = (boardSize - pad * 2 - cellGap * 2) / 3;
+
+  // 答え合わせモード(正解セトリ登録後)のマス判定: はずれ/的中/的中+担当アイドル歌唱 の3色分け
+  const answerSongs = result ? eventSetlist.map((e) => e.song) : null;
+  const answerMembers = result ? songMembersMap() : null;
+  function cellAnswerState(i) {
+    if (!result) return "none";
+    const song = board[i];
+    const isOpening = i === OPENING_IDX, isEncore = i === ENCORE_IDX;
+    const hit = isOpening ? result.openingHit : isEncore ? result.encoreHit : answerSongs.includes(song);
+    if (!hit) return "miss";
+    return answerMembers[song]?.includes(selectedIdolCv) ? "tantou" : "hit";
+  }
+  const CELL_COLORS = { none: "#f3e4cb", miss: "#f3e4cb", hit: "#ffd977", tantou: "#ffaec9" };
+
   for (let i = 0; i < BOARD_SIZE; i++) {
     const row = Math.floor(i / 3), col = i % 3;
     const x = boardX + pad + col * (cellSize + cellGap);
     const y = boardY + pad + row * (cellSize + cellGap);
     const isOpening = i === OPENING_IDX, isEncore = i === ENCORE_IDX;
     const special = isOpening || isEncore;
+    const answerState = cellAnswerState(i);
     const isBingoCell = glowSet.has(i);
-    drawRoundedRect(ctx, x, y, cellSize, cellSize, 12, isBingoCell ? "#ffd977" : "#f3e4cb");
+    // ライン成立マスは、はずれ/的中の色の上に金色の光彩(グロー)を重ねて目立たせる
+    if (isBingoCell) { ctx.save(); ctx.shadowColor = "rgba(232,121,30,0.85)"; ctx.shadowBlur = 24; }
+    drawRoundedRect(ctx, x, y, cellSize, cellSize, 12, CELL_COLORS[answerState]);
+    if (isBingoCell) { ctx.restore(); ctx.strokeStyle = "#e8791e"; ctx.lineWidth = 5; ctx.strokeRect(x + 2.5, y + 2.5, cellSize - 5, cellSize - 5); }
+    if (answerState === "tantou") { ctx.strokeStyle = "#ff5c8a"; ctx.lineWidth = 4; ctx.strokeRect(x + 4.5, y + 4.5, cellSize - 9, cellSize - 9); }
     if (special) { ctx.strokeStyle = "#e8791e"; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3); }
     if (special) {
       ctx.textAlign = "center";
       ctx.font = "700 15px 'JetBrains Mono', monospace";
       ctx.fillStyle = "#e8791e";
       ctx.fillText(isOpening ? "OPENING" : "ENCORE", x + cellSize / 2, y + 10);
+    }
+    if (answerState === "tantou") {
+      ctx.textAlign = "center";
+      ctx.font = "700 18px 'Inter', sans-serif";
+      ctx.fillStyle = "#ff5c8a";
+      ctx.fillText("★", x + cellSize - 20, y + (special ? 30 : 10));
     }
     ctx.font = "700 40px 'Inter', sans-serif";
     ctx.fillStyle = "#2b2119";
